@@ -1,0 +1,168 @@
+
+/*GENERAL*/
+
+:root {
+    --color-one: black;
+    --color-two: yellow;
+    --color-three:silver;
+    --color-four:rgb(99,99,99);
+    --color-five:rgb(38,38,38);
+    --color-six:rgb(78,206,144);
+    --color-seven:gainsboro;
+ 
+}
+*, *:before, *:after 
+{
+  
+  border:0px;
+  padding:0px;
+  margin:0px;
+  box-sizing: border-box;
+}
+
+*::-webkit-scrollbar 
+{
+	width: 0!important;
+	background-color:transparent!Important;
+	display:none!Important;
+}
+
+
+html,body
+{
+
+	font-weight: 100;
+	width:100%;
+	position:relative;
+	margin:0px;
+	padding:0px;  
+	font-size:1.0rem;
+	line-height:1.4rem;
+	-webkit-appearance: none;
+	height: 100%;
+	margin: 0;
+}
+
+img
+{
+	max-width:100%;
+	height:auto;
+}
+
+
+
+
+/*///////////////////////////
+///HELPER////////////////*/
+
+
+div#window-status
+{
+	position:fixed;
+	top:10px;
+	left:5px;
+	background:black;
+	color:white;
+	z-index: 900;
+	display:none;
+
+}
+
+
+
+/*///////////////////////////
+///FINDER////////////////*/
+
+div#finder
+{
+	position:relative;
+	background:black;
+	padding:5px;
+	color:white;
+	height:100vh;
+	width:100vw;
+}
+
+
+div#finder-error
+{
+	position:absolute;
+	z-index:2;
+	top:50%;
+	left:50%;
+	margin:-7px 0 0 -50px;
+	width:92px;
+	background:black;
+	color:white;
+	font-size:14px;
+	padding:3px;
+	display:none;
+}
+
+
+div#finder ul#items-list
+{
+	background:black;
+	color:white;
+	margin:0 0 3px 0;
+	padding:3px;
+	max-height:90%;
+	min-width:95%;
+	overflow:hidden;
+}
+
+
+
+
+div#finder ul#items-list li
+{
+	min-width:100%;
+	margin:0 0 5px 0;
+}
+
+
+
+div#finder ul#items-list li img
+{
+	display:none;
+}
+
+div#finder li:focus
+{
+	background:yellow;
+	color:black;
+}
+
+
+
+
+div#message-box
+{
+	display:none;
+	position:fixed;
+	bottom:5px;
+	left:0px;
+	padding:5px;
+	min-width:100vw;
+	height:auto;
+	background:pink;
+	color:black;
+	z-index:2000;
+}
+
+
+
+
+
+
+
+
+/* KaiOS portrait devices (240x320) */
+@media only screen and (orientation : portrait) {
+  /* styles */
+}
+
+/* KaiOS landscape devices (320x240) */
+@media screen and (orientation: landscape) {
+  /* styles */
+}
