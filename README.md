@@ -1,4 +1,4 @@
-#Passport
+# Passport
 At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All image files in a defined order (/sdcard1 /tickets/) are listed and displayed via enter.
 
 

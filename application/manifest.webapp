@@ -1,9 +1,10 @@
 {
 	"version": "1.0.0",
 	"name": "passport",
-	"description": "A launcher for your favorit apps",
+	"description": "ticket please",
 	"launch_path": "/index.html",
-	"type": "certified",
+	"type": "privileged",
+	"fullscreen": "true",
 
 
 	"icons": {
@@ -26,21 +27,6 @@
 		"device-storage:sdcard": {
 		"description": "Read from sd-card",
 		"access": "readonly"
-		},
-
-		"open-remote-window":{}, 
-
-		"device-storage:apps":{ "access": "readonly" },
-		"webapps-manage":{ },
-
-
-
-		"spatialnavigation-app-manage": {
-		"navigator.spatialNavigationEnabled": false
-		},
-
-		"systemXHR": {
-		"description": "Required to load remote content"
 		}
 
 
