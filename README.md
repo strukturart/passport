@@ -9,7 +9,7 @@ At times it is practically fast to access digital train / airplane qrcode ticket
 1. download [/build/passport.zip](/build/passport.zip) 
 2. copy in sdcard/downloads/ on your phone 
 3. installl the app with the GerdaOs Installer App.
-4. create on your sd-card a the dir "tickets' 
+4. create on your sd-card the dir "/tickets/' 
 
 
 ## How to use
