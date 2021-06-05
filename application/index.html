@@ -3,12 +3,7 @@
 <html>
 <head>
 	
-	<title>Custom-Launcher</title>
-	<meta http-equiv="Content-Security-Policy" content="default-src  https://api.openweathermap.org/* 'self'">
-
-
-
-
+	<title>Passport</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
@@ -19,6 +14,16 @@
 
 </head>
 <body>
+
+	<div id="messages">
+		<div id="empty-message">
+			No files found
+		</div>
+	
+		<div id="dir-not-exist">
+			The folder <strong>/passport</strong> does not exist, please create the dir
+		</div>
+	</div>
 <div id="wrapper">
 	<!---------------->
 	<!--app launcher-->
@@ -27,25 +32,15 @@
 		<ul id="items-list"></ul>
 	</div>
 
-
-	
-	<!--
-	///////////////
-	///DEBUG//////
-	//////////////
-	-->
-
-	<div id="message-box"></div>
-
-
 </div>
+
+<script defer src="assets/js/jQuery-3.1.0.js"></script>
+<script defer src="assets/js/moments.min.js"></script>
+<script defer src="assets/js/applait.finder.min.js"></script>
+<script defer src="assets/js/script.js"></script>
 
 </body>
 </html>
 
-	<script defer src="assets/js/jQuery-3.1.0.js"></script>
-	<script defer src="assets/js/moments.min.js"></script>
-	<script defer src="assets/js/applait.finder.min.js"></script>
-	<script defer src="assets/js/script.js"></script>
-	<script defer src="assets/js/client.min.js"></script>
+
 
