@@ -170,3 +170,24 @@ window.goodbye = function () {
     }, 6000);
   }
 };
+
+function write_file(data, filename) {
+  var sdcard = navigator.getDeviceStorages("sdcard");
+  var file = new Blob([data], {
+    type: "image/png ",
+  });
+  var request = sdcard[1].addNamed(file, filename);
+
+  request.onsuccess = function () {
+    var name = this.result;
+    toaster(
+      'File "' + name + '" successfully wrote on the sdcard storage area',
+      2000
+    );
+  };
+
+  // An error typically occur if a file with the same name already exist
+  request.onerror = function () {
+    toaster("Unable to write the file: " + this.error, 2000);
+  };
+}

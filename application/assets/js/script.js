@@ -9,6 +9,7 @@ var items = [];
 k = -1;
 
 function finder() {
+  document.getElementById("items-list").innerHTML = "";
   var filelist = navigator.getDeviceStorages("sdcard");
   for (var i = 0; i < filelist.length; i++) {
     var cursor = filelist[i].enumerateEditable();
@@ -133,6 +134,31 @@ function nav(move) {
   }
 }
 
+let createQr = function (string) {
+  var qr = new QRious();
+
+  qr.set({
+    background: "white",
+    foreground: "black",
+    level: "H",
+    padding: 25,
+    size: 500,
+    value: string,
+  });
+
+  qr.toDataURL();
+
+  fetch(qr.toDataURL())
+    .then((res) => res.blob())
+    .then((blob) => {
+      write_file(
+        blob,
+        "/sdcard1/passport/" + Math.floor(Date.now() / 1000) + ".png"
+      );
+      finder();
+    });
+};
+
 //////////////////////////
 ////KEYPAD TRIGGER////////////
 /////////////////////////
@@ -144,6 +170,11 @@ function handleKeyDown(evt) {
 
     case "Backspace":
       evt.preventDefault();
+      if (window_status == "scan") {
+        qr.stop_scan();
+        bottom_bar("qr", "", "");
+        return;
+      }
 
       if (window_status == "list") {
         window.close();
@@ -177,6 +208,14 @@ function handleKeyUp(evt) {
       break;
 
     case "SoftLeft":
+      qr.start_scan(function (callback) {
+        let slug = callback;
+        createQr(slug);
+        bottom_bar("qr", "", "");
+      });
+      break;
+
+    case "SoftRight":
       break;
   }
 }

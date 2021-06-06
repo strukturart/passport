@@ -26,8 +26,13 @@
 
 		"device-storage:sdcard": {
 		"description": "Read from sd-card",
-		"access": "readonly"
+		"access": "readwrite"
+		},
+
+		"video-capture": {
+		"description": "Reading Codes using the Camera"
 		}
+
 
 
  
