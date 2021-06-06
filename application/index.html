@@ -2,28 +2,53 @@
 <!DOCTYPE html>
 <html>
 <head>
-	
 	<title>Passport</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
 	<link rel="stylesheet" href="assets/css/main.css"/>
 	<link rel="stylesheet" href="assets/css/grid.css"/>
-
-
+	<link rel="stylesheet" href="assets/css/qr-reader.css" />
 
 </head>
 <body>
+	<div id="toast" class="width-100"></div>
 
 	<div id="messages">
 		<div id="empty-message">
 			No files found
 		</div>
-	
 		<div id="dir-not-exist">
 			The folder <strong>/passport</strong> does not exist, please create the dir
 		</div>
 	</div>
+
+
+	<div id="qr-screen">
+		<video id="video"></video>
+		<div id="corner-nw"></div>
+		<div id="corner-no"></div>
+		<div id="corner-so"></div>
+		<div id="corner-sw"></div>
+		<div id="startDecoding" hidden>Start Scanning</div>
+	</div>
+
+
+	<div id="bottom-bar">
+		<div class="inner flex justify-content-spacebetween width-100">
+			<div id="button-left"></div>
+			<div id="button-center"></div>
+			<div id="button-right"></div>
+		</div>
+	</div>
+
+	<div id="top-bar">
+		<div class="inner flex justify-content-spacebetween width-100">
+			<div class="button-left"></div>
+			<div class="button-center"></div>
+			<div class="button-right"></div>
+		</div>
+	</div>
+</div>
 <div id="wrapper">
 	<!---------------->
 	<!--app launcher-->
@@ -33,11 +58,12 @@
 	</div>
 
 </div>
+<script defer src="assets/js/helper.js"></script>
+
 
 <script defer src="assets/js/jQuery-3.1.0.js"></script>
-<script defer src="assets/js/moments.min.js"></script>
-<script defer src="assets/js/applait.finder.min.js"></script>
 <script defer src="assets/js/script.js"></script>
+
 
 </body>
 </html>

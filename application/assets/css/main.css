@@ -93,5 +93,121 @@ div#messages {
 
 div#messages div {
   text-align: center;
-  //display: none;
+}
+
+div#toast {
+  position: fixed;
+  height: auto;
+  top: -100px;
+  background: black;
+  color: white;
+  z-index: 6;
+  min-width: 100%;
+  padding: 5px;
+  text-align: center;
+}
+
+/*/////////////////
+///BOTTOM BAR////
+////////////////*/
+
+div#bottom-bar {
+  position: fixed;
+  z-index: 2000;
+  bottom: 10px;
+  left: 0px;
+  height: 18px;
+  z-index: 6;
+  background: black;
+  min-width: 100vw;
+}
+
+div#bottom-bar div#inner {
+  position: relative;
+}
+
+div#bottom-bar div {
+  background: black;
+  color: white;
+  padding: 2px;
+}
+
+div#bottom-bar div#button-center {
+  background: black;
+  color: white;
+  padding: 2px;
+  width: 30%;
+  text-align: center;
+}
+
+div#bottom-bar div#button-left {
+  background: black;
+  color: white;
+  padding: 2px;
+  width: 20px;
+  text-align: left;
+  width: 30%;
+}
+
+div#bottom-bar div#button-right {
+  background: black;
+  color: white;
+  padding: 2px;
+  width: 30%;
+  text-align: right;
+}
+
+/*/////////////////
+///TOP-BAR///////*/
+
+div#top-bar {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  height: 18px;
+  z-index: 4;
+  background: black;
+  min-width: 100vw;
+  display: none;
+}
+
+div#top-bar img {
+  margin: 3px 0 0 5px;
+  max-height: 15px;
+  color: white;
+}
+
+div#top-bar div#inner {
+  position: relative;
+}
+
+div#top-bar div {
+  background: black;
+  color: white;
+  padding: 2px;
+}
+
+div#top-bar div#button-center {
+  background: black;
+  color: white;
+  padding: 2px;
+  width: 30%;
+  text-align: center;
+}
+
+div#top-bar div#button-left {
+  background: black;
+  color: white;
+  padding: 2px;
+  width: 20px;
+  text-align: left;
+  width: 30%;
+}
+
+div#top-bar div#button-right {
+  background: black;
+  color: white;
+  padding: 2px;
+  width: 30%;
+  text-align: right;
 }
