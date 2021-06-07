@@ -1,8 +1,10 @@
 <img src="/images/passport.png">
 
+This app is written for the KaiOs
+
 # Passport
 
-At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All image files in a defined order (/passport/) are listed and displayed via enter.
+At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder / passport / are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app.
 
 ## How to install
 
@@ -12,6 +14,7 @@ The app is not available through the https://www.kaiostech.com/store/ They are o
 
 - Navigation up/down cursor
 - enter show the image
+- soft-left to scan & save qr-code
 
 ## To do
 
