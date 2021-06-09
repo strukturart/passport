@@ -96,22 +96,6 @@ function toaster(text, time) {
   }
 }
 
-function share(url) {
-  var activity = new MozActivity({
-    name: "share",
-    data: {
-      type: "url",
-      url: url,
-    },
-  });
-
-  activity.onsuccess = function () {};
-
-  activity.onerror = function () {
-    console.log("The activity encounter en error: " + this.error);
-  };
-}
-
 //check if internet connection
 function check_iconnection() {
   function updateOfflineStatus() {
@@ -189,5 +173,23 @@ function write_file(data, filename) {
   // An error typically occur if a file with the same name already exist
   request.onerror = function () {
     toaster("Unable to write the file: " + this.error, 2000);
+  };
+}
+
+function share(url, name) {
+  var activity = new MozActivity({
+    name: "share",
+    data: {
+      type: "image/*",
+      number: 1,
+      blobs: [url],
+      filenames: [name],
+    },
+  });
+
+  activity.onsuccess = function () {};
+
+  activity.onerror = function () {
+    console.log("The activity encounter en error: " + this.error);
   };
 }

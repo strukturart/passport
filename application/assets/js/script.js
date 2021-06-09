@@ -8,6 +8,10 @@ var window_status = "list";
 var items = [];
 k = -1;
 
+let user_lang = window.navigator.userLanguage || window.navigator.language;
+
+if (!lang.hasOwnProperty(user_lang)) user_lang = "default";
+
 function finder() {
   document.getElementById("items-list").innerHTML = "";
   var filelist = navigator.getDeviceStorages("sdcard");
@@ -22,7 +26,6 @@ function finder() {
           fileURL = URL.createObjectURL(file);
 
           var str = file.name;
-
           var dir = str.split("/");
           var file_name = dir[dir.length - 1];
 
@@ -31,6 +34,11 @@ function finder() {
             k++;
 
             let elm = document.createElement("LI");
+
+            var tblob = file;
+            elm.setAttribute("data-url", tblob);
+
+            elm.setAttribute("data-name", file_name);
             elm.setAttribute("tabindex", k);
             elm.classList.add("items");
 
@@ -64,6 +72,7 @@ function finder() {
       if (!dir_exist) {
         document.getElementById("messages").style.display = "block";
         document.getElementById("dir-not-exist").style.diisplay = "block";
+        bottom_bar(lang[user_lang].qr_code, "", "");
       }
     };
 
@@ -75,10 +84,7 @@ function finder() {
 
 finder();
 
-bottom_bar("qr", "", "");
-
-//to do
-//https://github.com/davidshimjs/qrcodejs
+bottom_bar(lang[user_lang].qr_code, "", lang[user_lang].share);
 
 function show_image() {
   window_status = "image_view";
@@ -134,10 +140,12 @@ function nav(move) {
   }
 }
 
-let createQr = function (string) {
-  var qr = new QRious();
+//https://github.com/davidshimjs/qrcodejs
 
-  qr.set({
+let createQr = function (string) {
+  var qrs = new QRious();
+
+  qrs.set({
     background: "white",
     foreground: "black",
     level: "H",
@@ -146,15 +154,15 @@ let createQr = function (string) {
     value: string,
   });
 
-  qr.toDataURL();
+  qrs.toDataURL();
 
-  fetch(qr.toDataURL())
+  fetch(qrs.toDataURL())
     .then((res) => res.blob())
     .then((blob) => {
-      write_file(
-        blob,
-        "/sdcard1/passport/" + Math.floor(Date.now() / 1000) + ".png"
-      );
+      let t = Math.floor(Date.now() / 1000);
+      let b = prompt(lang[user_lang].file_save, t);
+      if (b == null || b == "") qr.stop_scan();
+      write_file(blob, "/sdcard1/passport/" + b + ".png");
       finder();
     });
 };
@@ -172,7 +180,7 @@ function handleKeyDown(evt) {
       evt.preventDefault();
       if (window_status == "scan") {
         qr.stop_scan();
-        bottom_bar("qr", "", "");
+        bottom_bar(lang[user_lang].qr_code, "", lang[user_lang].share);
         return;
       }
 
@@ -210,12 +218,18 @@ function handleKeyUp(evt) {
     case "SoftLeft":
       qr.start_scan(function (callback) {
         let slug = callback;
+        alert(slug);
+
         createQr(slug);
-        bottom_bar("qr", "", "");
       });
       break;
 
     case "SoftRight":
+      //alert(document.activeElement.getAttribute("data-url"));
+      share(
+        document.activeElement.getAttribute("data-url"),
+        document.activeElement.getAttribute("data-name")
+      );
       break;
   }
 }

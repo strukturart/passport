@@ -81,7 +81,7 @@ div#messages {
   max-width: 100vw;
   height: 100vh;
   position: fixed;
-  z-index: 1000;
+  z-index: 100;
   background: black;
   color: white;
   top: 0;
@@ -118,7 +118,7 @@ div#bottom-bar {
   left: 0px;
   height: 18px;
   z-index: 6;
-  background: black;
+  background: gray;
   min-width: 100vw;
 }
 
@@ -127,13 +127,12 @@ div#bottom-bar div#inner {
 }
 
 div#bottom-bar div {
-  background: black;
+  background: gray;
   color: white;
   padding: 2px;
 }
 
 div#bottom-bar div#button-center {
-  background: black;
   color: white;
   padding: 2px;
   width: 30%;
@@ -141,7 +140,6 @@ div#bottom-bar div#button-center {
 }
 
 div#bottom-bar div#button-left {
-  background: black;
   color: white;
   padding: 2px;
   width: 20px;
@@ -150,7 +148,6 @@ div#bottom-bar div#button-left {
 }
 
 div#bottom-bar div#button-right {
-  background: black;
   color: white;
   padding: 2px;
   width: 30%;
