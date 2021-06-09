@@ -35,10 +35,10 @@ function finder() {
 
             let elm = document.createElement("LI");
 
-            var tblob = file;
-            elm.setAttribute("data-url", tblob);
-
+            elm.setAttribute("data-storage", i - 1);
+            elm.setAttribute("data-path", file.name);
             elm.setAttribute("data-name", file_name);
+
             elm.setAttribute("tabindex", k);
             elm.classList.add("items");
 
@@ -161,7 +161,8 @@ let createQr = function (string) {
     .then((blob) => {
       let t = Math.floor(Date.now() / 1000);
       let b = prompt(lang[user_lang].file_save, t);
-      if (b == null || b == "") qr.stop_scan();
+      if (b == null) qr.stop_scan();
+      if (b == "") b = t;
       write_file(blob, "/sdcard1/passport/" + b + ".png");
       finder();
     });
@@ -218,18 +219,26 @@ function handleKeyUp(evt) {
     case "SoftLeft":
       qr.start_scan(function (callback) {
         let slug = callback;
-        alert(slug);
-
         createQr(slug);
       });
       break;
 
     case "SoftRight":
-      //alert(document.activeElement.getAttribute("data-url"));
-      share(
-        document.activeElement.getAttribute("data-url"),
-        document.activeElement.getAttribute("data-name")
-      );
+      //share the file
+      var sdcard = navigator.getDeviceStorages("sdcard");
+      var request = sdcard[
+        document.activeElement.getAttribute("data-storage")
+      ].get(document.activeElement.getAttribute("data-path"));
+
+      request.onsuccess = function () {
+        var file = this.result;
+        share(file, document.activeElement.getAttribute("data-name"));
+      };
+
+      request.onerror = function () {
+        alert("Unable to get the file: " + this.error);
+      };
+
       break;
   }
 }
