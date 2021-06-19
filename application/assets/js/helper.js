@@ -193,3 +193,79 @@ function share(url, name) {
     console.log("The activity encounter en error: " + this.error);
   };
 }
+
+function deleteFile(storage, path, notification) {
+  let sdcard = navigator.getDeviceStorages("sdcard");
+
+  let requestDel = sdcard[storage].delete(path);
+
+  requestDel.onsuccess = function () {
+    if (notification == "notification") {
+      toaster(
+        'File "' + name + '" successfully deleted frome the sdcard storage area'
+      );
+    }
+  };
+
+  requestDel.onerror = function () {
+    toaster("Unable to delete the file: " + this.error);
+  };
+}
+
+let get_file = function (file) {
+  var sdcard = navigator.getDeviceStorages("sdcard");
+
+  var request = sdcard.get(file, blob);
+
+  request.onsuccess = function () {
+    var file = this.result;
+    console.log("Get the file: " + file.name);
+  };
+
+  request.onerror = function () {
+    console.warn("Unable to get the file: " + this.error);
+  };
+};
+
+let rename_file = function (filepath, filename, storage) {
+  window_status = "rename";
+
+  let sdcard = navigator.getDeviceStorages("sdcard");
+  let request = sdcard[storage].get(filepath);
+
+  request.onsuccess = function () {
+    let fileget = this.result;
+    let filetype = fileget.type;
+    let file_extension = fileget.name.split(".");
+    file_extension = file_extension[file_extension.length - 1];
+    let filepath_mod = filepath.replace(filename, "");
+
+    let newfilename = prompt(lang[user_lang].rename, "");
+
+    let requestAdd = sdcard[storage].addNamed(
+      fileget,
+      filepath_mod + newfilename + "." + file_extension
+    );
+    requestAdd.onsuccess = function () {
+      var request_del = sdcard[storage].delete(filepath);
+
+      request_del.onsuccess = function () {
+        // success copy and delete
+      };
+
+      request_del.onerror = function () {
+        // success copy not delete
+        alert("Unable to remove the file: " + this.error);
+      };
+
+      finder();
+    };
+    requestAdd.onerror = function () {
+      alert("Unable to write the file: " + this.error);
+    };
+  };
+
+  request.onerror = function () {
+    alert(this.error);
+  };
+};
