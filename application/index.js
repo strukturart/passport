@@ -156,7 +156,7 @@ function nav(move) {
   }
 }
 
-//https://github.com/davidshimjs/qrcodejs
+//https://github.com/neocotic/qrious
 
 let createQr = function (string) {
   var qrs = new QRious();
@@ -165,8 +165,8 @@ let createQr = function (string) {
     background: "white",
     foreground: "black",
     level: "H",
-    padding: 25,
-    size: 500,
+    padding: 5,
+    size: 1200,
     value: string,
   });
 

@@ -17,8 +17,8 @@ const qr = ((_) => {
         {
           audio: false,
           video: {
-            width: 200,
-            height: 200,
+            width: window.innerWidth,
+            height: window.innerHeight,
           },
         },
         function (stream) {
