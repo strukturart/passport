@@ -1,6 +1,6 @@
 <img src="/images/passport.png">
 
-This app is written for the KaiOs
+This app is written for the KaiOS
 
 # Passport
 
@@ -16,6 +16,7 @@ The app is not available through the https://www.kaiostech.com/store/ They are o
 - enter show the image
 - soft-left to scan & save qr-code
 - cursor left longpress to delete a file
+- cursor right rename file
 
 ## To do
 

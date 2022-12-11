@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Passport</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="assets/css/main.css"/>
+	<link rel="stylesheet" href="assets/css/grid.css"/>
+	<link rel="stylesheet" href="assets/css/qr-reader.css" />
+
+</head>
+<body>
+	<div id="toast" class="width-100"></div>
+
+	<div id="messages">
+		<div id="empty-message">
+		
+		</div>
+		<div id="dir-not-exist">
+			The folder <strong>/passport</strong> does not exist, please create the dir<br>
+			or the dir is empty.
+		</div>
+	</div>
+
+
+	<div id="qr-screen">
+		<video id="video"></video>
+		<div id="corner-nw"></div>
+		<div id="corner-no"></div>
+		<div id="corner-so"></div>
+		<div id="corner-sw"></div>
+		<div id="startDecoding" hidden>Start Scanning</div>
+	</div>
+
+
+	<div id="bottom-bar">
+		<div class="inner flex justify-content-spacebetween width-100">
+			<div id="button-left"></div>
+			<div id="button-center"></div>
+			<div id="button-right"></div>
+		</div>
+	</div>
+
+	<div id="top-bar">
+		<div class="inner flex justify-content-spacebetween width-100">
+			<div class="button-left"></div>
+			<div class="button-center"></div>
+			<div class="button-right"></div>
+		</div>
+	</div>
+</div>
+<div id="wrapper">
+    <img id="qr"></img>
+	<!---------------->
+	<!--app launcher-->
+	<!---------------->
+	<div id="finder" class="flex width-100 height-100 page">
+		<ul id="items-list"></ul>
+	</div>
+
+</div>
+<script defer src="assets/js/helper.js"></script>
+<script src="assets/js/scan.js"></script>
+<script src="assets/js/localization.js"></script>
+<script defer src="assets/js/jQuery-3.1.0.js"></script>
+<script defer src="index.js"></script>
+<script src="assets/js/jsQR.js"></script>
+<script src="assets/js/scan.js"></script>
+<script src="assets/js/qrious.js"></script>
+
+
+
+</body>
+</html>
+
+
+

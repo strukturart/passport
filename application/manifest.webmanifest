@@ -1,0 +1,43 @@
+{
+	"version": "1.0.0",
+	"name": "passport",
+	"description": "ticket please",
+	"launch_path": "/index.html",
+	"type": "privileged",
+	"fullscreen": "true",
+
+
+	"icons": {
+		"56": "/icons/icon-56-56.png",
+		"112": "/icons/icon-112-112.png"
+	},
+	
+	"developer": 
+	{
+		"name": "strukturart",
+		"url": "https://github.com/strukturart/passport"
+	},
+
+
+	"permissions": 
+	{
+
+
+
+		"device-storage:sdcard": {
+		"description": "Read from sd-card",
+		"access": "readwrite"
+		},
+
+		"video-capture": {
+		"description": "Reading Codes using the Camera"
+		}
+
+
+
+ 
+	}
+
+
+ 
+}
