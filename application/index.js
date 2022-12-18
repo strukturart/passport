@@ -8,110 +8,83 @@ let window_status = "intro";
 let items = [];
 k = -1;
 
+let current_file;
+let settings = { ads: false };
+
+//KaiOS ads
+
+//ads || ads free
+
+let load_ads = function () {
+  var js = document.createElement("script");
+  js.type = "text/javascript";
+  js.src = "assets/js/kaiads.v5.min.js";
+
+  js.onload = function () {
+    getKaiAd({
+      publisher: "4408b6fa-4e1d-438f-af4d-f3be2fa97208",
+      app: "passport",
+      slot: "passport",
+      test: 0,
+      timeout: 10000,
+      h: 100,
+      w: 240,
+      container: document.getElementById("KaiOsAds-Wrapper"),
+      onerror: (err) => console.error("Error:", err),
+      onready: (ad) => {
+        // user clicked the ad
+        ad.on("click", () => console.log("click event"));
+
+        // user closed the ad (currently only with fullscreen)
+        ad.on("close", () => console.log("close event"));
+
+        // the ad succesfully displayed
+        ad.on("display", () => console.log("display event"));
+
+        // Ad is ready to be displayed
+        // calling 'display' will display the ad
+        ad.call("display", {
+          navClass: "item",
+          //tabIndex: 0,
+          //display: "block",
+        });
+      },
+    });
+  };
+  document.head.appendChild(js);
+};
+
+let getManifest = function (callback) {
+  if (!navigator.mozApps) {
+    return false;
+  }
+  let self = navigator.mozApps.getSelf();
+  self.onsuccess = function () {
+    callback(self.result);
+  };
+  self.onerror = function () {};
+};
+
+let self;
+//KaiOs store true||false
+function manifest(a) {
+  self = a.origin;
+  console.log(a);
+
+  if (a.installOrigin == "app://kaios-plus.kaiostech.com") {
+    settings.ads = true;
+    load_ads();
+    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "none";
+  } else {
+    settings.ads = false;
+  }
+}
+
+getManifest(manifest);
+
 //load translation
 let user_lang = window.navigator.userLanguage || window.navigator.language;
 if (!lang.hasOwnProperty(user_lang)) user_lang = "default";
-
-let queue = [];
-let timeout;
-let toaster = function (text, time) {
-  queue.push({ text: text, time: time });
-  if (queue.length === 1) {
-    toast_q(text, time);
-  }
-};
-
-let toast_q = function (text, time) {
-  var x = document.querySelector("div#toast");
-  x.innerHTML = queue[0].text;
-
-  x.style.transform = "translate(0px, 0px)";
-
-  timeout = setTimeout(function () {
-    timeout = null;
-    x.style.transform = "translate(0px, -100px)";
-    queue = queue.slice(1);
-    if (queue.length > 0) {
-      setTimeout(() => {
-        toast_q(text, time);
-      }, 1000);
-    }
-  }, time);
-};
-
-//side toaster
-
-let queue_st = [];
-let ttimeout;
-let side_toaster = function (text, time) {
-  queue_st.push({ text: text, time: time });
-  if (queue_st.length === 1) {
-    toast_qq(text, time);
-  }
-};
-
-let toast_qq = function (text, time) {
-  var x = document.querySelector("div#side-toast");
-  x.innerHTML = queue_st[0].text;
-
-  x.style.transform = "translate(0vh, 0px)";
-
-  timeout = setTimeout(function () {
-    ttimeout = null;
-    x.style.transform = "translate(-100vh,0px)";
-    queue_st = queue.slice(1);
-    if (queue_st.length > 0) {
-      setTimeout(() => {
-        toast_qq(text, time);
-      }, 1000);
-    }
-  }, time);
-};
-
-//delete file
-let renameFile = function (filename, new_filename) {
-  let sdcard = navigator.getDeviceStorage("sdcard");
-  let request = sdcard.get(filename);
-  // let new_filename = prompt("new filename");
-
-  request.onsuccess = function () {
-    let data = this.result;
-
-    let file_extension = data.name.split(".");
-    file_extension = file_extension[file_extension.length - 1];
-
-    let filepath = data.name.split("/").slice(0, -1).join("/") + "/";
-
-    let requestAdd = sdcard.addNamed(
-      data,
-      filepath + new_filename + "." + file_extension
-    );
-    requestAdd.onsuccess = function () {
-      var request_del = sdcard.delete(data.name);
-
-      request_del.onsuccess = function () {
-        // success copy and delete
-
-        document.querySelector("[data-filepath='" + filename + "']").innerText =
-          new_filename + "." + file_extension;
-
-        side_toaster("successfully renamed", 3000);
-      };
-
-      request_del.onerror = function () {
-        // success copy not delete
-        toaster("Unable to write the file", 3000);
-      };
-    };
-    requestAdd.onerror = function () {
-      toaster("Unable to write the file", 3000);
-    };
-  };
-
-  request.onerror = function () {
-    toaster("Unable to write the file", 3000);
-  };
-};
 
 function finder() {
   document.getElementById("items-list").innerHTML = "";
@@ -174,13 +147,15 @@ function finder() {
           this.continue();
         }
       }
-      document.querySelectorAll("li.items")[0].focus();
-      items = document.querySelectorAll("li.items");
 
       if (dir_exist) {
         document.getElementById("messages").style.display = "none";
         document.getElementById("dir-not-exist").style.diisplay = "none";
         bottom_bar("", "", "<img src='assets/images/option.svg'>");
+        document.querySelectorAll("li.items")[0].focus();
+
+        items = document.querySelectorAll("li.items");
+        current_file = document.activeElement;
         window_status = "page-list";
       }
       if (!dir_exist) {
@@ -241,13 +216,13 @@ function show_options() {
 
 let sharefile = () => {
   var sdcard = navigator.getDeviceStorages("sdcard");
-  var request = sdcard[document.activeElement.getAttribute("data-storage")].get(
-    document.activeElement.getAttribute("data-path")
+  var request = sdcard[current_file.getAttribute("data-storage")].get(
+    current_file.getAttribute("data-path")
   );
 
   request.onsuccess = function () {
     var file = this.result;
-    share(file, document.activeElement.getAttribute("data-name"));
+    share(file, current_file.getAttribute("data-name"));
   };
 
   request.onerror = function () {
@@ -260,6 +235,48 @@ let startscan = () => {
     let slug = callback;
     createQr(slug);
   });
+};
+
+let func = () => {
+  let m = document.activeElement.getAttribute("data-func");
+
+  switch (m) {
+    case "startscan":
+      startscan();
+      break;
+    case "deletefile":
+      deleteFile(
+        current_file.getAttribute("data-storage"),
+        current_file.getAttribute("data-path")
+      );
+
+      document.getElementById("messages").style.display = "block";
+      document.getElementById("dir-not-exist").style.display = "block";
+      finder();
+      side_toaster("file deleted", 2000);
+
+      break;
+    case "renamefile":
+      window_status = "rename_file";
+      var a = prompt("Enter new filename");
+      if (a != null) {
+        renameFile(current_file.getAttribute("data-path"), a);
+        setTimeout(() => {
+          window_status = "page-options";
+          show_image_list();
+          finder();
+          side_toaster("file renamed", 2000);
+        }, 2000);
+      } else {
+        setTimeout(() => {
+          window_status = "page-options";
+        }, 2000);
+      }
+      break;
+    case "sharefile":
+      sharefile();
+      break;
+  }
 };
 
 ////////////////////////
@@ -289,6 +306,10 @@ function nav(move) {
       pos_focus = items.length - 1;
       items[pos_focus].focus();
     }
+  }
+
+  if (window_status == "page-list") {
+    current_file = document.activeElement;
   }
 }
 
@@ -336,7 +357,15 @@ function handleKeyDown(evt) {
 
   switch (evt.key) {
     case "Enter":
-      show_image();
+      if (window_status == "page-list") {
+        show_image();
+        return;
+      }
+      if (window_status == "page-options") {
+        func();
+        return;
+      }
+
       break;
 
     case "ArrowLeft":
@@ -435,15 +464,7 @@ function handleKeyUp(evt) {
 
       break;
 
-    case "SoftLeft":
-      console.log(window_status);
-
-      break;
-
     case "SoftRight":
-      console.log(window_status);
-
-      //share the file
       if (window_status == "page-list") {
         show_options();
       }

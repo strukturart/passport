@@ -119,10 +119,29 @@ div#toast {
   top: -100px;
   background: black;
   color: white;
-  z-index: 6;
+  z-index: 6000;
   min-width: 100%;
   padding: 5px;
   text-align: center;
+}
+
+div#side-toast {
+  position: fixed;
+  height: auto;
+  overflow: none;
+  background: orange;
+  color: white;
+  z-index: 100000;
+  padding: 5px;
+  top: 70vh;
+
+  transition: all 0.5s ease-in-out;
+  transform-origin: left top;
+  transform: translate(-100vw, 0px);
+}
+
+div#side-toast img {
+  width: 60px;
 }
 
 /*/////////////////
@@ -262,4 +281,18 @@ div#page-options div.item:focus {
 div#page-options div.item {
   background: black;
   color: white;
+}
+
+#KaiOsAds-Wrapper {
+  margin: 0px 0 0 0;
+}
+
+#KaiOsAds-Wrapper-Title {
+  margin: 15px 0 5px 0;
+  font-size: 11px;
+  color: white;
+}
+
+#dir-not-exist {
+  display: none;
 }

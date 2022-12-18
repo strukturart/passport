@@ -2,7 +2,7 @@ const qr = ((_) => {
   let video;
   let intv;
   let start_scan = function (callback) {
-    window_status = "scan";
+    window_status = "page-scan";
     bottom_bar("", "", "");
 
     document.getElementById("qr-screen").style.display = "block";
@@ -72,6 +72,7 @@ const qr = ((_) => {
     tracks.forEach(function (track) {
       track.stop();
       document.getElementById("qr-screen").style.display = "none";
+      window_status = "page-options";
     });
 
     video.srcObject = null;
