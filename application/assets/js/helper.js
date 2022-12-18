@@ -64,16 +64,6 @@ let top_bar = function (left, center, right) {
   }
 };
 
-//check if internet connection
-function check_iconnection() {
-  function updateOfflineStatus() {
-    toaster("Your Browser is offline", 15000);
-    return false;
-  }
-
-  window.addEventListener("offline", updateOfflineStatus);
-}
-
 //wake up screen
 function screenWakeLock(param1) {
   if (param1 == "lock") {
@@ -94,34 +84,6 @@ function screenWakeLock(param1) {
     }
   }
 }
-
-window.goodbye = function () {
-  document.getElementById("goodbye").style.display = "block";
-
-  if (localStorage.clickcount) {
-    localStorage.clickcount = Number(localStorage.clickcount) + 1;
-  } else {
-    localStorage.clickcount = 1;
-  }
-
-  if (localStorage.clickcount == 3) {
-    message();
-  } else {
-    document.getElementById("ciao").style.display = "block";
-    setTimeout(function () {
-      window.close();
-    }, 4000);
-  }
-
-  function message() {
-    document.getElementById("donation").style.display = "block";
-    setTimeout(function () {
-      localStorage.clickcount = 1;
-
-      window.close();
-    }, 6000);
-  }
-};
 
 function write_file(data, filename) {
   var sdcard = navigator.getDeviceStorages("sdcard");
@@ -195,45 +157,103 @@ let get_file = function (file) {
   };
 };
 
-let rename_file = function (filepath, filename, storage) {
-  window_status = "rename";
+let queue = [];
+let timeout;
+let toaster = function (text, time) {
+  queue.push({ text: text, time: time });
+  if (queue.length === 1) {
+    toast_q(text, time);
+  }
+};
 
-  let sdcard = navigator.getDeviceStorages("sdcard");
-  let request = sdcard[storage].get(filepath);
+let toast_q = function (text, time) {
+  var x = document.querySelector("div#toast");
+  x.innerHTML = queue[0].text;
+
+  x.style.transform = "translate(0px, 0px)";
+
+  timeout = setTimeout(function () {
+    timeout = null;
+    x.style.transform = "translate(0px, -100px)";
+    queue = queue.slice(1);
+    if (queue.length > 0) {
+      setTimeout(() => {
+        toast_q(text, time);
+      }, 1000);
+    }
+  }, time);
+};
+
+//side toaster
+
+let queue_st = [];
+let ttimeout;
+let side_toaster = function (text, time) {
+  queue_st.push({ text: text, time: time });
+  if (queue_st.length === 1) {
+    toast_qq(text, time);
+  }
+};
+
+let toast_qq = function (text, time) {
+  var x = document.querySelector("div#side-toast");
+  x.innerHTML = queue_st[0].text;
+
+  x.style.transform = "translate(0vh, 0px)";
+
+  timeout = setTimeout(function () {
+    ttimeout = null;
+    x.style.transform = "translate(-100vh,0px)";
+    queue_st = queue.slice(1);
+    if (queue_st.length > 0) {
+      setTimeout(() => {
+        toast_qq(text, time);
+      }, 1000);
+    }
+  }, time);
+};
+
+//delete file
+let renameFile = function (filename, new_filename) {
+  let sdcard = navigator.getDeviceStorage("sdcard");
+  let request = sdcard.get(filename);
+  // let new_filename = prompt("new filename");
 
   request.onsuccess = function () {
-    let fileget = this.result;
-    let filetype = fileget.type;
-    let file_extension = fileget.name.split(".");
+    let data = this.result;
+
+    let file_extension = data.name.split(".");
     file_extension = file_extension[file_extension.length - 1];
-    let filepath_mod = filepath.replace(filename, "");
 
-    let newfilename = prompt(lang[user_lang].rename, "");
+    let filepath = data.name.split("/").slice(0, -1).join("/") + "/";
 
-    let requestAdd = sdcard[storage].addNamed(
-      fileget,
-      filepath_mod + newfilename + "." + file_extension
+    let requestAdd = sdcard.addNamed(
+      data,
+      filepath + new_filename + "." + file_extension
     );
     requestAdd.onsuccess = function () {
-      var request_del = sdcard[storage].delete(filepath);
+      var request_del = sdcard.delete(data.name);
 
       request_del.onsuccess = function () {
         // success copy and delete
+
+        document.querySelector("[data-filepath='" + filename + "']").innerText =
+          new_filename + "." + file_extension;
+
+        side_toaster("successfully renamed", 3000);
       };
 
       request_del.onerror = function () {
         // success copy not delete
-        alert("Unable to remove the file: " + this.error);
+        toaster("Unable to write the file", 3000);
       };
-
-      finder();
     };
     requestAdd.onerror = function () {
-      alert("Unable to write the file: " + this.error);
+      toaster("Unable to write the file", 3000);
     };
   };
 
   request.onerror = function () {
-    alert(this.error);
+    toaster("Unable to write the file", 3000);
   };
 };
