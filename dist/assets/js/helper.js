@@ -39,22 +39,20 @@ function notify(param_title, param_text, param_silent, requireInteraction) {
 }
 
 //bottom bar
-function bottom_bar(left, center, right) {
-  document.querySelector("div#bottom-bar div#button-left").textContent = left;
-  document.querySelector(
-    "div#bottom-bar div#button-center"
-  ).textContent = center;
-  document.querySelector("div#bottom-bar div#button-right").textContent = right;
+let bottom_bar = function (left, center, right) {
+  document.querySelector("div#bottom-bar div#button-left").innerHTML = left;
+  document.querySelector("div#bottom-bar div#button-center").innerHTML = center;
+  document.querySelector("div#bottom-bar div#button-right").innerHTML = right;
 
   if (left == "" && center == "" && right == "") {
     document.querySelector("div#bottom-bar").style.display = "none";
   } else {
     document.querySelector("div#bottom-bar").style.display = "block";
   }
-}
+};
 
 //top bar
-function top_bar(left, center, right) {
+let top_bar = function (left, center, right) {
   document.querySelector("div#top-bar div.button-left").innerHTML = left;
   document.querySelector("div#top-bar div.button-center").textContent = center;
   document.querySelector("div#top-bar div.button-right").textContent = right;
@@ -64,8 +62,7 @@ function top_bar(left, center, right) {
   } else {
     document.querySelector("div#top-bar").style.display = "block";
   }
-}
-
+};
 
 //check if internet connection
 function check_iconnection() {

@@ -30,7 +30,7 @@ body {
   max-width: 100%;
   height: 100%;
   width: 100%;
-  overflow: auto;
+  overflow: hidden;
   background: black;
 }
 
@@ -44,16 +44,17 @@ img {
 /*///////////////////////////
 ///FINDER////////////////*/
 
-div#finder {
+div#page-list {
   position: relative;
   background: black;
   padding: 0px;
   color: white;
-  height: 100vh;
+  max-height: 100vh;
   width: 100vw;
+  overflow: hidden;
 }
 
-div#finder ul#items-list {
+div#page-list ul#items-list {
   background: black;
   color: white;
   margin: 0 0 3px 0;
@@ -63,19 +64,19 @@ div#finder ul#items-list {
   overflow: hidden;
 }
 
-div#finder ul#items-list li {
+div#page-list ul#items-list li {
   min-width: 100vw;
   margin: 0 0 5px 0;
   color: white;
   list-style-type: none;
 }
 
-div#finder ul#items-list li:focus {
+div#page-list ul#items-list li:focus {
   background-color: yellow;
   color: black;
 }
 
-div#finder ul#items-list li img {
+div#page-list ul#items-list li img {
   display: none;
   min-width: 100%;
 }
@@ -89,7 +90,7 @@ div#finder ul#items-list li img {
   }
 }
 
-div#finder li.delete {
+div#page-list li.delete {
   animation: color-change linear 2s;
 }
 
@@ -134,8 +135,8 @@ div#bottom-bar {
   bottom: 10px;
   left: 0px;
   height: 18px;
-  z-index: 100000;
-  background: gray;
+  z-index: 6;
+  background: none;
   min-width: 100vw;
 }
 
@@ -144,30 +145,57 @@ div#bottom-bar div#inner {
 }
 
 div#bottom-bar div {
-  background: gray;
+  background: none;
   color: white;
   padding: 2px;
-}
-
-div#bottom-bar div#button-center {
-  color: white;
-  padding: 2px;
-  width: 30%;
+  font-size: 0.8rem;
   text-align: center;
 }
 
-div#bottom-bar div#button-left {
+div#bottom-bar div#button-center {
+  background: none;
   color: white;
   padding: 2px;
-  width: 20px;
+  width: 32%;
+  text-align: center;
+}
+
+div#bottom-bar div#button-center img {
+  position: fixed;
+  bottom: 5px;
+
+  left: 46%;
+  width: 30px;
+}
+
+div#bottom-bar div#button-left {
+  background: none;
+  color: white;
+  padding: 2px;
+  width: 32%;
   text-align: left;
-  width: 30%;
+  width: 32%;
+}
+
+div#bottom-bar div#button-left img {
+  position: fixed;
+  bottom: 5px;
+  left: 10px;
+  width: 30px;
+}
+
+div#bottom-bar div#button-right img {
+  position: fixed;
+  bottom: 5px;
+  right: 10px;
+  width: 30px;
 }
 
 div#bottom-bar div#button-right {
+  background: none;
   color: white;
   padding: 2px;
-  width: 30%;
+  width: 32%;
   text-align: right;
 }
 
@@ -224,4 +252,14 @@ div#top-bar div#button-right {
   padding: 2px;
   width: 30%;
   text-align: right;
+}
+
+div#page-options div.item:focus {
+  background: yellow;
+  color: black;
+}
+
+div#page-options div.item {
+  background: black;
+  color: white;
 }
