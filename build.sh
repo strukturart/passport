@@ -1,8 +1,5 @@
 #!/bin/sh 
 
-rm -rf ./dist
-mkdir ./dist
-
 
 rm -rf ./build
 mkdir ./build
@@ -12,13 +9,12 @@ mkdir ./build
 
 
 
-cp -r ./application/* ./dist/
 
 
 
 #!/bin/bash
 #create default app zip
-cd dist/
+cd application/
 mv manifest.webmanifest ../
 rm ../build/passport.zip
 zip -r ../build/passport.zip ./*
@@ -43,13 +39,7 @@ rm -fr ../passport-omnisd
 rm ../application.zip
 
 
-#create KaiOS 3.0 app zip
 
-cd ../../
-cd dist/
-mv manifest.webapp ../
-zip -r ../build/passport-kaios3.zip ./*
-mv  ../manifest.webapp ./
 exit
 
 
