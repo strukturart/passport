@@ -81,6 +81,39 @@ div#page-list ul#items-list li img {
   min-width: 100%;
 }
 
+div#page-qr-content {
+  display: none;
+  background: black;
+  color: white;
+  margin: 0 0 3px 0;
+  padding: 5px;
+  height: auto;
+  min-width: 100%;
+  overflow: scroll;
+  position: fixed;
+  z-index: 30000000000;
+  top: 0px;
+  left: 0px;
+}
+
+div#page-options {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0px;
+  z-index: 30000000000;
+}
+
+div#page-options div.item:focus {
+  background: yellow;
+  color: black;
+}
+
+div#page-options div.item {
+  background: black;
+  color: white;
+}
+
 @keyframes color-change {
   from {
     margin-left: 0%;
@@ -107,10 +140,14 @@ div#messages {
   padding: 50px 5px 5px 5px;
   background-image: url("../images/space.gif");
   background-size: cover;
+  display: block;
 }
 
-div#messages div {
+div#messages div#dir-not-exist {
   text-align: center;
+  display: none;
+  position: fixed;
+  z-index: 10000;
 }
 
 div#toast {
@@ -123,6 +160,7 @@ div#toast {
   min-width: 100%;
   padding: 5px;
   text-align: center;
+  z-index: 100000;
 }
 
 div#side-toast {
@@ -273,16 +311,6 @@ div#top-bar div#button-right {
   text-align: right;
 }
 
-div#page-options div.item:focus {
-  background: yellow;
-  color: black;
-}
-
-div#page-options div.item {
-  background: black;
-  color: white;
-}
-
 #KaiOsAds-Wrapper {
   margin: 0px 0 0 0;
 }
@@ -291,8 +319,4 @@ div#page-options div.item {
   margin: 15px 0 5px 0;
   font-size: 11px;
   color: white;
-}
-
-#dir-not-exist {
-  display: none;
 }

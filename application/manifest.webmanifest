@@ -1,43 +1,36 @@
 {
-	"version": "1.0.0",
-	"name": "passport",
-	"description": "ticket please",
-	"launch_path": "/index.html",
-	"type": "privileged",
-	"fullscreen": "true",
-
-
-	"icons": {
-		"56": "/icons/icon-56-56.png",
-		"112": "/icons/icon-112-112.png"
-	},
-	
-	"developer": 
-	{
-		"name": "strukturart",
-		"url": "https://github.com/strukturart/passport"
-	},
-
-
-	"permissions": 
-	{
-
-
-
-		"device-storage:sdcard": {
-		"description": "Read from sd-card",
-		"access": "readwrite"
-		},
-
-		"video-capture": {
-		"description": "Reading Codes using the Camera"
-		}
-
-
-
- 
-	}
-
-
- 
+  "name": "passport",
+  "description": "At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder / passport / are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app.",
+  "lang": "en-US",
+  "start_url": "/index.html",
+  "icons": [
+    {
+      "src": "/icons/icon-56-56.png",
+      "type": "image/png",
+      "sizes": "56x56"
+    },
+    {
+      "src": "/icons/icon-112-112.png",
+      "type": "image/png",
+      "sizes": "112x112"
+    }
+  ],
+  "b2g_features": {
+    "version": "1.0.0",
+    "type": "privileged",
+    "fullscreen": "true",
+    "developer": {
+      "name": "strukturart",
+      "url": "https://github.com/strukturart/passport"
+    },
+    "permissions": {
+      "device-storage:sdcard": {
+        "description": "Read from sd-card",
+        "access": "readwrite"
+      },
+      "video-capture": {
+        "description": "Reading Codes using the Camera"
+      }
+    }
+  }
 }

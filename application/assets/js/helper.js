@@ -1,43 +1,5 @@
 "use strict";
 
-function notify(param_title, param_text, param_silent, requireInteraction) {
-  var options = {
-    body: param_text,
-    silent: param_silent,
-    requireInteraction: requireInteraction,
-  };
-
-  // Let's check if the browser supports notifications
-  if (!("Notification" in window)) {
-    alert("This browser does not support desktop notification");
-  }
-
-  // Let's check whether notification permissions have already been granted
-  else if (Notification.permission === "granted") {
-    // If it's okay let's create a notification
-    var notification = new Notification(param_title, options);
-  }
-
-  // Otherwise, we need to ask the user for permission
-  else if (Notification.permission !== "denied") {
-    Notification.requestPermission().then(function (permission) {
-      // If the user accepts, let's create a notification
-      if (permission === "granted") {
-        var notification = new Notification(param_title, options, action);
-
-        document.addEventListener("visibilitychange", function () {
-          if (document.visibilityState === "visible") {
-            // The tab has become visible so clear the now-stale Notification.
-            notification.close();
-
-            toaster("yes", 2000);
-          }
-        });
-      }
-    });
-  }
-}
-
 //bottom bar
 let bottom_bar = function (left, center, right) {
   document.querySelector("div#bottom-bar div#button-left").innerHTML = left;
@@ -142,14 +104,13 @@ function deleteFile(storage, path, notification) {
   };
 }
 
-let get_file = function (file) {
-  var sdcard = navigator.getDeviceStorages("sdcard");
+let get_file = function (file, callback) {
+  var sdcard = navigator.getDeviceStorage("sdcard");
 
-  var request = sdcard.get(file, blob);
+  var request = sdcard.get(file);
 
   request.onsuccess = function () {
-    var file = this.result;
-    console.log("Get the file: " + file.name);
+    callback(this.result);
   };
 
   request.onerror = function () {

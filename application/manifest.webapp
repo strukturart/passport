@@ -1,8 +1,10 @@
 {
 	"version": "1.0.0",
 	"name": "passport",
-	"description": "ticket please",
+	"description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder  passport  are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app.",
 	"launch_path": "/index.html",
+	"fullscreen": "true",
+	"lang": "en-US",
 	"type": "privileged",
 	"fullscreen": "true",
 
@@ -16,6 +18,16 @@
 	{
 		"name": "strukturart",
 		"url": "https://github.com/strukturart/passport"
+	},
+	"dependencies": {
+		"ads-sdk": "1.5.0"
+	},
+		"locales": {
+		"en-US": {
+			"name": "Passport",
+			"subtitle": "Ticket please",
+	"description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder passport  are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app."
+		}
 	},
 
 
@@ -31,7 +43,10 @@
 
 		"video-capture": {
 		"description": "Reading Codes using the Camera"
-		}
+		},
+			"mobiledata": {},
+		"wifidata": {},
+		"calllog": {}
 
 
 

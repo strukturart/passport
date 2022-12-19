@@ -1,4 +1,4 @@
-const qr = ((_) => {
+let qr = ((_) => {
   let video;
   let intv;
   let start_scan = function (callback) {
@@ -49,6 +49,7 @@ const qr = ((_) => {
               let code = jsQR(idd, imageWidth, imageHeight);
 
               if (code) {
+                console.log(code.data);
                 callback(code.data);
                 stop_scan();
                 clearInterval(intv);
@@ -78,8 +79,52 @@ const qr = ((_) => {
     video.srcObject = null;
   };
 
+  let read_from_file = (data, callback) => {
+    let reader = new FileReader();
+    reader.readAsDataURL(data);
+
+    reader.onload = function () {
+      /*
+      let img = new Image();
+      img.src = reader.result;
+      img.onload = function () {
+        var barcodeCanvas = document.createElement("canvas");
+        var barcodeContext = barcodeCanvas.getContext("2d");
+        barcodeContext.drawImage(img, 0, 0);
+        var imageData = barcodeContext.getImageData(
+          0,
+          0,
+          img.width,
+          img.height
+        );
+
+        var idd = imageData.data;
+         };
+*/
+      let code;
+      let m = 0;
+      let intv = setInterval(() => {
+        m++;
+        //https://github.com/nimiq/qr-scanner
+        QrScanner.scanImage(reader.result)
+          .then(function (result) {
+            code = result;
+            callback(result);
+          })
+          .catch((error) => console.log(error || "No QR code found."));
+
+        if (code || m > 20) clearInterval(intv);
+      }, 1000);
+    };
+
+    reader.onerror = function () {
+      console.log(reader.error);
+    };
+  };
+
   return {
     start_scan,
     stop_scan,
+    read_from_file,
   };
 })();
