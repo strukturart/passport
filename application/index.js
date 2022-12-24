@@ -6,7 +6,7 @@ let dir_exist = false;
 let pos_focus = 0;
 let window_status = "intro";
 let items = [];
-k = -1;
+let k = -1;
 
 let current_file;
 let settings = { ads: false };
@@ -26,17 +26,23 @@ let load_ads = function () {
       app: "passport",
       slot: "passport",
       test: 0,
-      timeout: 10000,
+      timeout: 50000,
       h: 140,
       w: 240,
       container: document.getElementById("KaiOsAds-Wrapper"),
       onerror: (err) => console.error("Error:", err),
       onready: (ad) => {
         // user clicked the ad
-        ad.on("click", () => console.log("click event"));
+        ad.on("click", () => {
+          console.log("hey");
+          show_options();
+        });
 
         // user closed the ad (currently only with fullscreen)
-        ad.on("close", () => console.log("close event"));
+        ad.on("close", () => {
+          console.log("hey");
+          show_options();
+        });
 
         // the ad succesfully displayed
         ad.on("display", () => console.log("display event"));
@@ -44,9 +50,9 @@ let load_ads = function () {
         // Ad is ready to be displayed
         // calling 'display' will display the ad
         ad.call("display", {
-          navClass: "item",
+          navClass: "ads-item",
           //tabIndex: 0,
-          //display: "block",
+          display: "block",
         });
       },
     });
@@ -69,14 +75,15 @@ let self;
 //KaiOs store true||false
 function manifest(a) {
   self = a.origin;
-  console.log(a);
-
   if (a.installOrigin == "app://kaios-plus.kaiostech.com") {
     settings.ads = true;
     load_ads();
+    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "block";
   } else {
+    load_ads();
+
     settings.ads = false;
-    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "none";
+    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "block";
   }
 }
 
@@ -84,6 +91,12 @@ getManifest(manifest);
 
 function finder() {
   document.getElementById("items-list").innerHTML = "";
+  if ("getDeviceStorages" in navigator) {
+  } else {
+    bottom_bar("", "", "<img src='assets/images/option.svg'>");
+    return false;
+  }
+
   var filelist = navigator.getDeviceStorages("sdcard");
   for (var i = 0; i < filelist.length; i++) {
     var cursor = filelist[i].enumerateEditable();
@@ -136,10 +149,7 @@ function finder() {
           }
         }
 
-        // Once we found a file we check if there is other results
         if (!this.done) {
-          // Then we move to the next result, which call the
-          // cursor success with the next file as result.
           this.continue();
         }
       }
@@ -160,23 +170,21 @@ function finder() {
       }
       if (!dir_exist) {
         document.getElementById("messages").style.display = "block";
-        document.getElementById("dir-not-exist").style.diisplay = "block";
+        document.getElementById("dir-not-exist").style.display = "block";
         window_status = "page-list";
         bottom_bar("", "", "<img src='assets/images/option.svg'>");
       }
 
       if (k == -1) {
-        console.log("hey ho");
-
         document.querySelector("div#messages").style.display = "block";
-        document.querySelector("div#dir-not-exist").style.diisplay = "block";
+        document.querySelector("div#dir-not-exist").style.display = "block";
         window_status = "page-list";
         bottom_bar("", "", "<img src='assets/images/option.svg'>");
       }
 
       if (k >= 0) {
         document.getElementById("messages").style.display = "none";
-        document.getElementById("dir-not-exist").style.diisplay = "none";
+        document.getElementById("dir-not-exist").style.display = "none";
         window_status = "page-list";
         bottom_bar("", "", "<img src='assets/images/option.svg'>");
       }
@@ -258,6 +266,10 @@ let sharefile = () => {
 };
 
 let startscan = () => {
+  document.querySelector("div#page-list").style.display = "none";
+  document.querySelector("div#page-qr-content").style.display = "none";
+  document.querySelector("div#page-options").style.display = "none";
+
   qr.start_scan(function (slug) {
     createQr(slug);
   });
@@ -321,8 +333,13 @@ let func = () => {
 /////////////////////////
 
 function nav(move) {
+  items = "";
   let element = document.activeElement.parentElement;
-  items = element.querySelectorAll(".item");
+  items = Array.from(element.querySelectorAll(".item"));
+
+  items.push(element.querySelector(".ads-item"));
+
+  bottom_bar("", "", "");
 
   if (move == "+1") {
     pos_focus++;
@@ -330,13 +347,22 @@ function nav(move) {
       items[pos_focus].focus();
     }
 
-    if (pos_focus >= items.length) {
+    if (pos_focus > items.length - 1) {
       pos_focus = 0;
       items[0].focus();
+    }
+
+    if (document.activeElement.className == "ads-item") {
+      bottom_bar("", "open ads", "");
     }
   }
 
   if (move == "-1") {
+    if (document.activeElement.className == "ads-item") {
+      let m = document.getElementById("page-options");
+      items = Array.from(m.querySelectorAll(".item"));
+      items[0].focus();
+    }
     pos_focus--;
     if (pos_focus >= 0) {
       items[pos_focus].focus();
@@ -465,6 +491,7 @@ function handleKeyUp(evt) {
 
       if (window_status == "page-scan") {
         qr.stop_scan();
+        show_options();
         return;
       }
 

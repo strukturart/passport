@@ -84,23 +84,6 @@ let qr = ((_) => {
     reader.readAsDataURL(data);
 
     reader.onload = function () {
-      /*
-      let img = new Image();
-      img.src = reader.result;
-      img.onload = function () {
-        var barcodeCanvas = document.createElement("canvas");
-        var barcodeContext = barcodeCanvas.getContext("2d");
-        barcodeContext.drawImage(img, 0, 0);
-        var imageData = barcodeContext.getImageData(
-          0,
-          0,
-          img.width,
-          img.height
-        );
-
-        var idd = imageData.data;
-         };
-*/
       let code;
       let m = 0;
       let intv = setInterval(() => {
