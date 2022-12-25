@@ -11,6 +11,8 @@ let k = -1;
 let current_file;
 let settings = { ads: false };
 
+//console.log("test" + navigator.getDisplayMedia());
+
 //KaiOS ads
 
 //ads || ads free
@@ -34,13 +36,11 @@ let load_ads = function () {
       onready: (ad) => {
         // user clicked the ad
         ad.on("click", () => {
-          console.log("hey");
           show_options();
         });
 
         // user closed the ad (currently only with fullscreen)
         ad.on("close", () => {
-          console.log("hey");
           show_options();
         });
 
@@ -80,10 +80,8 @@ function manifest(a) {
     load_ads();
     document.getElementById("KaiOsAds-Wrapper-Title").style.display = "block";
   } else {
-    load_ads();
-
     settings.ads = false;
-    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "block";
+    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "none";
   }
 }
 
@@ -97,67 +95,63 @@ function finder() {
     return false;
   }
 
-  var filelist = navigator.getDeviceStorages("sdcard");
-  for (var i = 0; i < filelist.length; i++) {
-    var cursor = filelist[i].enumerateEditable();
+  var filelist = navigator.getDeviceStorage("sdcard");
 
-    cursor.onsuccess = function () {
-      if (cursor.result) {
-        var file = cursor.result;
+  var cursor = filelist.enumerateEditable();
+  console.log(cursor);
 
-        //check if dir exist
+  cursor.onsuccess = function () {
+    if (cursor.result) {
+      var file = cursor.result;
+
+      //check if dir exist
+      var str = file.name;
+      var dir = str.split("/");
+      var file_name = dir[dir.length - 1];
+      if (dir[2] == dir_name) {
+        fullpath = "/" + dir[0] + dir[1] + "/" + dir[2] + "/";
+      }
+
+      if (file.type.match("image/*")) {
+        fileURL = URL.createObjectURL(file);
+
         var str = file.name;
         var dir = str.split("/");
         var file_name = dir[dir.length - 1];
+
         if (dir[2] == dir_name) {
-          fullpath = "/" + dir[0] + dir[1] + "/" + dir[2] + "/";
-        }
+          dir_exist = true;
+          k++;
 
-        if (file.type.match("image/*")) {
-          fileURL = URL.createObjectURL(file);
+          let elm = document.createElement("LI");
 
-          var str = file.name;
-          var dir = str.split("/");
-          var file_name = dir[dir.length - 1];
+          // elm.setAttribute("data-storage", i - 1);
+          elm.setAttribute("data-path", file.name);
+          elm.setAttribute("data-name", file_name);
 
-          if (dir[2] == dir_name) {
-            dir_exist = true;
-            k++;
+          elm.setAttribute("tabindex", k);
+          elm.classList.add("item");
 
-            let elm = document.createElement("LI");
+          let div = document.createElement("DIV");
+          div.classList.add("item-name");
+          div.innerText = file_name;
 
-            elm.setAttribute("data-storage", i - 1);
-            elm.setAttribute("data-path", file.name);
-            elm.setAttribute("data-name", file_name);
+          let img = document.createElement("img");
+          img.src = fileURL;
+          elm.appendChild(img);
 
-            elm.setAttribute("tabindex", k);
-            elm.classList.add("item");
+          elm.appendChild(div);
 
-            let div = document.createElement("DIV");
-            div.classList.add("item-name");
-            div.innerText = file_name;
+          document.getElementById("items-list").appendChild(elm);
 
-            let img = document.createElement("img");
-            img.src = fileURL;
-            elm.appendChild(img);
-
-            elm.appendChild(div);
-
-            document.getElementById("items-list").appendChild(elm);
-
-            window_status = "page-list";
-          }
-        }
-
-        if (!this.done) {
-          this.continue();
+          window_status = "page-list";
         }
       }
-    };
 
-    cursor.onerror = function () {
-      console.log("err");
-    };
+      if (!this.done) {
+        this.continue();
+      }
+    }
 
     setTimeout(() => {
       if (dir_exist) {
@@ -173,6 +167,10 @@ function finder() {
         document.getElementById("dir-not-exist").style.display = "block";
         window_status = "page-list";
         bottom_bar("", "", "<img src='assets/images/option.svg'>");
+
+        if (fullpath == undefined) {
+          fullpath = "passport/";
+        }
       }
 
       if (k == -1) {
@@ -189,7 +187,11 @@ function finder() {
         bottom_bar("", "", "<img src='assets/images/option.svg'>");
       }
     }, 2000);
-  }
+  };
+
+  cursor.onerror = function () {
+    console.log("err");
+  };
 }
 
 finder();
@@ -224,6 +226,8 @@ function show_image_list() {
     window_status = "page-list";
   }, 1000);
   a[0].focus();
+
+  current_file = document.activeElement;
 }
 
 function show_qr_content(data) {
@@ -250,10 +254,8 @@ function show_options() {
 }
 
 let sharefile = () => {
-  var sdcard = navigator.getDeviceStorages("sdcard");
-  var request = sdcard[current_file.getAttribute("data-storage")].get(
-    current_file.getAttribute("data-path")
-  );
+  var sdcard = navigator.getDeviceStorage("sdcard");
+  var request = sdcard.get(current_file.getAttribute("data-path"));
 
   request.onsuccess = function () {
     var file = this.result;
@@ -294,15 +296,10 @@ let func = () => {
       startscan();
       break;
     case "deletefile":
-      deleteFile(
-        current_file.getAttribute("data-storage"),
-        current_file.getAttribute("data-path")
-      );
-
-      document.getElementById("messages").style.display = "block";
-      document.getElementById("dir-not-exist").style.display = "block";
-      finder();
-      side_toaster("file deleted", 2000);
+      let delete_callback = () => {
+        window.location.reload();
+      };
+      deleteFile(current_file.getAttribute("data-path"), delete_callback);
 
       break;
     case "renamefile":
@@ -311,10 +308,7 @@ let func = () => {
       if (a != null) {
         renameFile(current_file.getAttribute("data-path"), a);
         setTimeout(() => {
-          window_status = "page-options";
-          show_image_list();
-          finder();
-          side_toaster("file renamed", 2000);
+          window.location.reload();
         }, 2000);
       } else {
         setTimeout(() => {
@@ -337,9 +331,8 @@ function nav(move) {
   let element = document.activeElement.parentElement;
   items = Array.from(element.querySelectorAll(".item"));
 
-  items.push(element.querySelector(".ads-item"));
-
-  bottom_bar("", "", "");
+  if (window_status == "page_options")
+    items.push(element.querySelector(".ads-item"));
 
   if (move == "+1") {
     pos_focus++;
@@ -362,6 +355,8 @@ function nav(move) {
       let m = document.getElementById("page-options");
       items = Array.from(m.querySelectorAll(".item"));
       items[0].focus();
+    } else {
+      bottom_bar("", "", "<img src='assets/images/option.svg'>");
     }
     pos_focus--;
     if (pos_focus >= 0) {
@@ -398,15 +393,18 @@ let createQr = function (string) {
   fetch(qrs.toDataURL())
     .then((res) => res.blob())
     .then((blob) => {
+      console.log("hey");
       let t = Math.floor(Date.now() / 1000);
-      let b = prompt(lang[user_lang].file_save, t);
+      let b = prompt("filename ?", t);
       if (b == null) qr.stop_scan();
+
       if (b == "") b = t;
       write_file(blob, fullpath + b + ".png");
 
-      finder();
-      side_toaster("file created", 2000);
-      window_status = "page-list";
+      setTimeout(() => {
+        side_toaster("file created", 2000);
+        window.location.reload(true);
+      }, 2000);
     });
 };
 
@@ -440,15 +438,14 @@ function handleKeyDown(evt) {
     case "ArrowLeft":
       document.activeElement.classList.add("delete");
       if (presstime > 6) {
+        let delete_callback = () => {
+          window.location.reload();
+        };
         presstime = 0;
         deleteFile(
-          document.activeElement.getAttribute("data-storage"),
-          document.activeElement.getAttribute("data-path")
+          document.activeElement.getAttribute("data-path"),
+          delete_callback
         );
-
-        document.getElementById("messages").style.display = "block";
-        document.getElementById("dir-not-exist").style.display = "block";
-        finder();
       }
       break;
 
@@ -518,8 +515,7 @@ function handleKeyUp(evt) {
         if (a != null) {
           renameFile(document.activeElement.getAttribute("data-path"), a);
           setTimeout(() => {
-            window_status = "list";
-            finder();
+            window.location.reload();
           }, 4000);
         } else {
           setTimeout(() => {

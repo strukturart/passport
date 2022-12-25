@@ -48,21 +48,16 @@ function screenWakeLock(param1) {
 }
 
 function write_file(data, filename) {
-  var sdcard = navigator.getDeviceStorages("sdcard");
+  var sdcard = navigator.getDeviceStorage("sdcard");
   var file = new Blob([data], {
     type: "image/png ",
   });
-  var request = sdcard[1].addNamed(file, filename);
+  var request = sdcard.addNamed(file, filename);
 
   request.onsuccess = function () {
     var name = this.result;
-    toaster(
-      'File "' + name + '" successfully wrote on the sdcard storage area',
-      2000
-    );
   };
 
-  // An error typically occur if a file with the same name already exist
   request.onerror = function () {
     toaster("Unable to write the file: " + this.error, 2000);
   };
@@ -86,17 +81,13 @@ function share(url, name) {
   };
 }
 
-function deleteFile(storage, path, notification) {
-  let sdcard = navigator.getDeviceStorages("sdcard");
+function deleteFile(path, callback) {
+  let sdcard = navigator.getDeviceStorage("sdcard");
 
-  let requestDel = sdcard[storage].delete(path);
+  let requestDel = sdcard.delete(path);
 
   requestDel.onsuccess = function () {
-    if (notification == "notification") {
-      toaster(
-        'File "' + name + '" successfully deleted frome the sdcard storage area'
-      );
-    }
+    callback();
   };
 
   requestDel.onerror = function () {
