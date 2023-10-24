@@ -3,42 +3,50 @@
    id="emoji"
    viewBox="0 0 72 72"
    version="1.1"
-   sodipodi:docname="E25C.svg"
-   inkscape:version="1.1.1 (eb90963e84, 2021-10-02)"
+   sodipodi:docname="save.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
    xmlns:svg="http://www.w3.org/2000/svg">
   <defs
-     id="defs16" />
+     id="defs44" />
   <sodipodi:namedview
-     id="namedview14"
+     id="namedview42"
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
-     inkscape:pageshadow="2"
-     inkscape:pageopacity="0.0"
-     inkscape:pagecheckerboard="0"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="true"
+     inkscape:deskcolor="#d1d1d1"
      showgrid="false"
-     inkscape:zoom="10.861111"
-     inkscape:cx="35.953964"
-     inkscape:cy="35.953964"
-     inkscape:window-width="1848"
+     inkscape:zoom="3.2777778"
+     inkscape:cx="36.152542"
+     inkscape:cy="36.152542"
+     inkscape:window-width="1920"
      inkscape:window-height="1016"
      inkscape:window-x="0"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
-     inkscape:current-layer="emoji" />
+     inkscape:current-layer="emoji"
+     inkscape:pageshadow="2" />
+  <g
+     id="hair" />
+  <g
+     id="skin" />
+  <g
+     id="skin-shadow" />
   <ellipse
-     style="fill:#ffaaaa;fill-rule:evenodd;stroke-width:1.28769"
-     id="path746"
-     cx="33.962696"
-     cy="36.094425"
-     rx="33.4991"
-     ry="35" />
+     style="fill:#fffffd;fill-opacity:1;stroke-width:4.65"
+     id="path848"
+     cx="37.807865"
+     cy="36.327728"
+     rx="34.540501"
+     ry="34.540272" />
   <g
      id="line"
-     transform="translate(-0.31182065,-1.1897379)">
+     transform="translate(1.8440082,-2.977655)">
     <line
        x1="36.085098"
        x2="36.085098"

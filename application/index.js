@@ -1,539 +1,515 @@
-//set your source path
-var dir_name = "passport";
-let fullpath;
-let dir_exist = false;
-//Global Vars
-let pos_focus = 0;
-let window_status = "intro";
-let items = [];
-let k = -1;
+"use strict";
 
+let debug = false;
+let filter_query;
+let file_content = [];
 let current_file;
-let settings = { ads: false };
+let files = [];
+let action = null;
+let action_element = null;
+let selected_image;
+let selected_image_url;
+let qrcode_content;
 
-//console.log("test" + navigator.getDisplayMedia());
-
-//KaiOS ads
-
-//ads || ads free
-
-let load_ads = function () {
-  var js = document.createElement("script");
-  js.type = "text/javascript";
-  js.src = "assets/js/kaiads.v5.min.js";
-
-  js.onload = function () {
-    getKaiAd({
-      publisher: "4408b6fa-4e1d-438f-af4d-f3be2fa97208",
-      app: "passport",
-      slot: "passport",
-      test: 0,
-      timeout: 50000,
-      h: 140,
-      w: 240,
-      container: document.getElementById("KaiOsAds-Wrapper"),
-      onerror: (err) => console.error("Error:", err),
-      onready: (ad) => {
-        // user clicked the ad
-        ad.on("click", () => {
-          show_options();
-        });
-
-        // user closed the ad (currently only with fullscreen)
-        ad.on("close", () => {
-          show_options();
-        });
-
-        // the ad succesfully displayed
-        ad.on("display", () => console.log("display event"));
-
-        // Ad is ready to be displayed
-        // calling 'display' will display the ad
-        ad.call("display", {
-          navClass: "ads-item",
-          //tabIndex: 0,
-          display: "block",
-        });
-      },
+let set_tabindex = () => {
+  document
+    .querySelectorAll('.item:not([style*="display: none"]')
+    .forEach((e, i) => {
+      if (e.style.display != "none") {
+        e.setAttribute("tabindex", i);
+      } else {
+        e.setAttribute("tabindex", -1);
+      }
     });
-  };
-  document.head.appendChild(js);
 };
 
-let getManifest = function (callback) {
-  if (!navigator.mozApps) {
-    return false;
+//NAVIGATION
+
+let nav = function (move) {
+  // set_tabindex();
+
+  const currentIndex = document.activeElement.tabIndex;
+  let next = currentIndex + move;
+  let items = 0;
+
+  items = document.querySelectorAll(".item");
+
+  let targetElement = 0;
+
+  if (next <= items.length) {
+    targetElement = items[next];
+    targetElement.focus();
   }
-  let self = navigator.mozApps.getSelf();
-  self.onsuccess = function () {
-    callback(self.result);
-  };
-  self.onerror = function () {};
+
+  if (next == items.length) {
+    targetElement = items[0];
+    targetElement.focus();
+  }
+
+  const rect = document.activeElement.getBoundingClientRect();
+  const elY =
+    rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
+
+  document.activeElement.parentElement.parentElement.scrollBy({
+    left: 0,
+    top: elY - window.innerHeight / 2,
+    behavior: "smooth",
+  });
 };
 
-let self;
-//KaiOs store true||false
-function manifest(a) {
-  self = a.origin;
-  if (a.installOrigin == "app://kaios-plus.kaiostech.com") {
-    settings.ads = true;
-    load_ads();
-    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "block";
-  } else {
-    settings.ads = false;
-    document.getElementById("KaiOsAds-Wrapper-Title").style.display = "none";
-  }
-}
+//list dic
 
-getManifest(manifest);
+try {
+  var d = navigator.getDeviceStorage("sdcard");
 
-function finder() {
-  document.getElementById("items-list").innerHTML = "";
-  if ("getDeviceStorages" in navigator) {
-  } else {
-    bottom_bar("", "", "<img src='assets/images/option.svg'>");
-    return false;
-  }
-
-  var filelist = navigator.getDeviceStorage("sdcard");
-
-  var cursor = filelist.enumerateEditable();
-  console.log(cursor);
+  var cursor = d.enumerate();
 
   cursor.onsuccess = function () {
-    if (cursor.result) {
-      var file = cursor.result;
-
-      //check if dir exist
-      var str = file.name;
-      var dir = str.split("/");
-      var file_name = dir[dir.length - 1];
-      if (dir[2] == dir_name) {
-        fullpath = "/" + dir[0] + dir[1] + "/" + dir[2] + "/";
-      }
-
-      if (file.type.match("image/*")) {
-        fileURL = URL.createObjectURL(file);
-
-        var str = file.name;
-        var dir = str.split("/");
-        var file_name = dir[dir.length - 1];
-
-        if (dir[2] == dir_name) {
-          dir_exist = true;
-          k++;
-
-          let elm = document.createElement("LI");
-
-          // elm.setAttribute("data-storage", i - 1);
-          elm.setAttribute("data-path", file.name);
-          elm.setAttribute("data-name", file_name);
-
-          elm.setAttribute("tabindex", k);
-          elm.classList.add("item");
-
-          let div = document.createElement("DIV");
-          div.classList.add("item-name");
-          div.innerText = file_name;
-
-          let img = document.createElement("img");
-          img.src = fileURL;
-          elm.appendChild(img);
-
-          elm.appendChild(div);
-
-          document.getElementById("items-list").appendChild(elm);
-
-          window_status = "page-list";
-        }
-      }
-
-      if (!this.done) {
-        this.continue();
-      }
+    if (!this.result) {
+      m.route.set("/start");
     }
+    if (cursor.result.name !== null) {
+      var file = cursor.result;
+      let m = file.name.split("/");
+      let file_name = m[m.length - 1];
 
-    setTimeout(() => {
-      if (dir_exist) {
-        bottom_bar("", "", "<img src='assets/images/option.svg'>");
-        document.querySelectorAll("li.item")[0].focus();
+      let f = URL.createObjectURL(file);
 
-        items = document.querySelectorAll("li.item");
-        current_file = document.activeElement;
-        window_status = "page-list";
+      if (file.name.includes("sdcard/passport/")) {
+        files.push({ "path": f, "name": file_name, "file": file.name });
       }
-      if (!dir_exist) {
-        document.getElementById("messages").style.display = "block";
-        document.getElementById("dir-not-exist").style.display = "block";
-        window_status = "page-list";
-        bottom_bar("", "", "<img src='assets/images/option.svg'>");
-
-        if (fullpath == undefined) {
-          fullpath = "passport/";
-        }
-      }
-
-      if (k == -1) {
-        document.querySelector("div#messages").style.display = "block";
-        document.querySelector("div#dir-not-exist").style.display = "block";
-        window_status = "page-list";
-        bottom_bar("", "", "<img src='assets/images/option.svg'>");
-      }
-
-      if (k >= 0) {
-        document.getElementById("messages").style.display = "none";
-        document.getElementById("dir-not-exist").style.display = "none";
-        window_status = "page-list";
-        bottom_bar("", "", "<img src='assets/images/option.svg'>");
-      }
-    }, 2000);
+      this.continue();
+    }
   };
 
   cursor.onerror = function () {
-    console.log("err");
+    console.warn("No file found: " + this.error);
   };
-}
+} catch (e) {}
 
-finder();
+if ("b2g" in navigator) {
+  try {
+    var sdcard = navigator.b2g.getDeviceStorage("sdcard");
+    var iterable = sdcard.enumerate();
+    var iterFiles = iterable.values();
 
-function show_image() {
-  window_status = "page-view";
-  let a = document.querySelectorAll("li.item");
-  for (i = 0; i < a.length; i++) {
-    a[i].style.display = "none";
-    a[i].querySelectorAll(".item-name")[0].style.display = "none";
-  }
-  document.activeElement.style.display = "block";
-  document.activeElement.querySelectorAll("img")[0].style.display = "block";
+    function next(_files) {
+      _files
+        .next()
+        .then((file) => {
+          if (!file.done) {
+            let fileExtension = file.value.name.slice(-3); // Get the last three characters of the file name
 
-  bottom_bar("", "", "");
-}
+            if (fileExtension == "dic") {
+              files.push({ path: file.value.name, name: file.value.name });
+              m.route.set("/start");
+            }
 
-function show_image_list() {
-  pos_focus = 0;
-  let a = document.querySelectorAll("div#page-list li.item");
-  if (window_status == "page-view") {
-    for (i = 0; i < a.length; i++) {
-      a[i].style.display = "block";
-      a[i].querySelectorAll("div.item-name")[0].style.display = "block";
-      a[i].getElementsByTagName("IMG")[0].style.display = "none";
+            next(_files);
+          }
+        })
+        .catch(() => {
+          next(_files);
+        });
     }
+
+    next(iterFiles);
+  } catch (e) {
+    alert(e);
   }
-  document.querySelector("div#page-list").style.display = "block";
-  document.querySelector("div#page-options").style.display = "none";
-  bottom_bar("", "", "<img src='assets/images/option.svg'>");
-  setTimeout(() => {
-    window_status = "page-list";
-  }, 1000);
-  a[0].focus();
-
-  current_file = document.activeElement;
 }
 
-function show_qr_content(data) {
-  document.querySelector("div#page-qr-content").style.display = "block";
-  document.querySelector("div#page-qr-content").focus();
-  document.querySelector("div#page-qr-content").innerText = data;
-  document.querySelector("div#page-options").style.display = "none";
-  console.log(data);
-}
+let load_qrcode_content = (filepath) => {
+  let sdcard = "";
 
-function show_options() {
-  pos_focus = 0;
-  window_status = "page-options";
+  try {
+    sdcard = navigator.getDeviceStorage("sdcard");
+  } catch (e) {}
 
-  document.querySelector("div#page-list").style.display = "none";
-  document.querySelector("div#page-qr-content").style.display = "none";
+  let request = sdcard.get(filepath);
 
-  document.querySelector("div#page-options").style.display = "block";
-  bottom_bar("", "", "");
+  request.onsuccess = function (e) {
+    const file = e.target.result; // The retrieved file
 
-  document.querySelectorAll("div#page-options .item")[0].focus();
-  items = [];
-  items = document.querySelectorAll("div#page-options .item");
-}
+    const reader = new FileReader();
 
-let sharefile = () => {
-  var sdcard = navigator.getDeviceStorage("sdcard");
-  var request = sdcard.get(current_file.getAttribute("data-path"));
+    reader.addEventListener("load", function (event) {
+      const arrayBuffer = event.target.result; // This is the ArrayBuffer
 
-  request.onsuccess = function () {
-    var file = this.result;
-    share(file, current_file.getAttribute("data-name"));
-  };
+      if (arrayBuffer instanceof ArrayBuffer) {
+        const blob = new Blob([arrayBuffer]);
 
-  request.onerror = function () {
-    alert("Unable to get the file: " + this.error);
-  };
-};
+        // Create an Image object
+        const img = new Image();
 
-let startscan = () => {
-  document.querySelector("div#page-list").style.display = "none";
-  document.querySelector("div#page-qr-content").style.display = "none";
-  document.querySelector("div#page-options").style.display = "none";
+        img.onload = function () {
+          const width = img.width; // Get the width of the image
+          const height = img.height; // Get the height of the image
 
-  qr.start_scan(function (slug) {
-    createQr(slug);
-  });
-};
+          // Create a canvas and draw the image on it
+          const canvas = document.createElement("canvas");
+          const ctx = canvas.getContext("2d");
+          canvas.width = width;
+          canvas.height = height;
+          ctx.drawImage(img, 0, 0);
 
-let func = () => {
-  let m = document.activeElement.getAttribute("data-func");
+          // Get image data
+          const imageData = ctx.getImageData(0, 0, width, height);
 
-  switch (m) {
-    case "readfile":
-      let get_file_callback = (data) => {
-        show_qr_content("please wait....");
-        let get_content_callback = (e) => {
-          show_qr_content(e);
-          window_status = "page_qr_content";
+          // Use jsQR to decode the QR code
+          const code = jsQR(imageData.data, width, height);
+
+          if (code) {
+            qrcode_content = code.data;
+            helper.bottom_bar("<img src='assets/images/eye.svg'>", "", "");
+          } else {
+            qrcode_content = "";
+            helper.bottom_bar("", "", "");
+          }
         };
-        qr.read_from_file(data, get_content_callback);
-      };
-      get_file(current_file.getAttribute("data-path"), get_file_callback);
-      break;
-    case "startscan":
-      startscan();
-      break;
-    case "deletefile":
-      let delete_callback = () => {
-        window.location.reload();
-      };
-      deleteFile(current_file.getAttribute("data-path"), delete_callback);
 
-      break;
-    case "renamefile":
-      window_status = "rename_file";
-      var a = prompt("Enter new filename");
-      if (a != null) {
-        renameFile(current_file.getAttribute("data-path"), a);
-        setTimeout(() => {
-          window.location.reload();
-        }, 2000);
+        img.onerror = function () {
+          console.error("Failed to load the image.");
+        };
+
+        // Set the image source to the Blob URL
+        img.src = URL.createObjectURL(blob);
       } else {
-        setTimeout(() => {
-          window_status = "page-options";
-        }, 2000);
+        console.error("Invalid ArrayBuffer type.");
       }
-      break;
-    case "sharefile":
-      sharefile();
-      break;
-  }
+    });
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  request.onerror = function (error) {
+    console.log(error);
+  };
 };
 
-////////////////////////
-//NAVIGATION
-/////////////////////////
+//VIEWS
 
-function nav(move) {
-  items = "";
-  let element = document.activeElement.parentElement;
-  items = Array.from(element.querySelectorAll(".item"));
+let startup = true;
+let t = 5000;
 
-  if (window_status == "page_options")
-    items.push(element.querySelector(".ads-item"));
+document.addEventListener("DOMContentLoaded", function () {
+  var root = document.querySelector("main");
 
-  if (move == "+1") {
-    pos_focus++;
-    if (pos_focus <= items.length) {
-      items[pos_focus].focus();
-    }
+  var start = {
+    view: function () {
+      return m("div", [
+        m(
+          "div",
+          {
+            id: "intro",
+            oncreate: () => {
+              startup
+                ? (t = 5000)
+                : (document.querySelector("#intro").style.display = "none");
+              setTimeout(() => {
+                document.querySelector("#intro").style.display = "none";
+                startup = false;
+              }, t);
+            },
+          },
+          [m("img", { src: "/assets/icons/icon-112-112.png" })]
+        ),
+        m(
+          "ul",
+          {
+            id: "files-list",
+            oncreate: () => {
+              helper.bottom_bar(
+                "",
+                "<img src='assets/images/select.svg'>",
+                "<img src='assets/images/option.svg'>"
+              );
+            },
+          },
+          [
+            files.map((e, i) => {
+              return m(
+                "li",
+                {
+                  class: "item",
+                  tabindex: i,
+                  "data-path": e.path,
+                  "data-file": e.file,
+                  oncreate: ({ dom }) => {
+                    if (i == 0) {
+                      dom.focus();
+                    }
+                  },
+                  onkeydown: (e) => {
+                    if (e.keyCode === 13) {
+                      selected_image =
+                        document.activeElement.getAttribute("data-path");
+                      selected_image_url =
+                        document.activeElement.getAttribute("data-file");
 
-    if (pos_focus > items.length - 1) {
-      pos_focus = 0;
-      items[0].focus();
-    }
+                      m.route.set("/show_image");
+                    }
 
-    if (document.activeElement.className == "ads-item") {
-      bottom_bar("", "open ads", "");
-    }
-  }
+                    if (e.key === "SoftRight") {
+                      m.route.set("/options");
+                    }
+                  },
+                },
+                e.name
+              );
+            }),
+          ]
+        ),
+      ]);
+    },
+  };
 
-  if (move == "-1") {
-    if (document.activeElement.className == "ads-item") {
-      let m = document.getElementById("page-options");
-      items = Array.from(m.querySelectorAll(".item"));
-      items[0].focus();
-    } else {
-      bottom_bar("", "", "<img src='assets/images/option.svg'>");
-    }
-    pos_focus--;
-    if (pos_focus >= 0) {
-      items[pos_focus].focus();
-    }
+  var options = {
+    view: function () {
+      return m(
+        "div",
+        {
+          id: "options-page",
+          oninit: () => {
+            helper.load_ads();
+          },
+          oncreate: () => {
+            helper.bottom_bar("", "", "");
+          },
 
-    if (pos_focus == -1) {
-      pos_focus = items.length - 1;
-      items[pos_focus].focus();
-    }
-  }
+          onkeydown: (e) => {
+            if (e.key === "Backspace") {
+              m.route.set("/show_image");
+            }
+          },
+        },
 
-  if (window_status == "page-list") {
-    current_file = document.activeElement;
-  }
-}
+        [
+          m("div", {
+            id: "text",
+            oncreate: ({ dom }) => {
+              m.render(
+                dom,
+                m.trust(
+                  "<kbd class='item'>Parrot</kbd> <br>With this app you can expand and maintain the vocabulary of your predictive text. <br><br> Credits: Mithril.js <br>License: MIT<br><br>"
+                )
+              );
+            },
+          }),
+          m("kbd", "KaiOs Ads"),
 
-//https://github.com/neocotic/qrious
+          m("div", { id: "KaiOsAds-Wrapper", class: "item" }),
+        ]
+      );
+    },
+  };
 
-let createQr = function (string) {
-  var qrs = new QRious();
+  var show_image = {
+    view: function () {
+      return m("div", {}, [
+        m("img", {
+          src: selected_image,
+          id: "image",
+          oninit: () => {
+            helper.bottom_bar("", "", "");
+            load_qrcode_content(selected_image_url);
+          },
+        }),
+      ]);
+    },
+  };
 
-  qrs.set({
-    background: "white",
-    foreground: "black",
-    level: "H",
-    padding: 5,
-    size: 1200,
-    value: string,
+  var show_qr_content = {
+    view: function () {
+      return m(
+        "div",
+        {
+          id: "qr-content",
+          oninit: () => {
+            helper.bottom_bar("", "", "");
+          },
+        },
+        qrcode_content
+      );
+    },
+  };
+
+  m.route(root, "/start", {
+    "/show_qr_content": show_qr_content,
+    "/show_image": show_image,
+    "/start": start,
+    "/options": options,
   });
 
-  qrs.toDataURL();
+  m.route.prefix = "#";
 
-  fetch(qrs.toDataURL())
-    .then((res) => res.blob())
-    .then((blob) => {
-      console.log("hey");
-      let t = Math.floor(Date.now() / 1000);
-      let b = prompt("filename ?", t);
-      if (b == null) qr.stop_scan();
+  //////////////////////////////
+  ////KEYPAD HANDLER////////////
+  //////////////////////////////
 
-      if (b == "") b = t;
-      write_file(blob, fullpath + b + ".png");
+  let longpress = false;
+  const longpress_timespan = 1000;
+  let timeout;
 
-      setTimeout(() => {
-        side_toaster("file created", 2000);
-        window.location.reload(true);
-      }, 2000);
-    });
-};
+  function repeat_action(param) {
+    switch (param.key) {
+      case "ArrowUp":
+        break;
 
-//////////////////////////
-////KEYPAD TRIGGER////////////
-/////////////////////////
-let start, end, delta;
-let fired = false;
-let presstime = 0;
+      case "ArrowDown":
+        break;
 
-function handleKeyDown(evt) {
-  presstime++;
+      case "ArrowLeft":
+        break;
 
-  if (!fired) start = new Date().getTime();
-
-  fired = true;
-
-  switch (evt.key) {
-    case "Enter":
-      if (window_status == "page-list") {
-        show_image();
-        return;
-      }
-      if (window_status == "page-options") {
-        func();
-        return;
-      }
-
-      break;
-
-    case "ArrowLeft":
-      document.activeElement.classList.add("delete");
-      if (presstime > 6) {
-        let delete_callback = () => {
-          window.location.reload();
-        };
-        presstime = 0;
-        deleteFile(
-          document.activeElement.getAttribute("data-path"),
-          delete_callback
-        );
-      }
-      break;
-
-    case "Backspace":
-      evt.preventDefault();
-
-      break;
+      case "ArrowRight":
+        break;
+    }
   }
-}
 
-function handleKeyUp(evt) {
-  fired = false;
-  end = new Date().getTime();
-  delta = end - start;
+  //////////////
+  ////LONGPRESS
+  /////////////
 
-  presstime = 0;
+  function longpress_action(param) {
+    switch (param.key) {
+      case "*":
+        break;
 
-  switch (evt.key) {
-    case "Enter":
-      break;
+      case "Backspace":
+        break;
+    }
+  }
 
-    case "Backspace":
+  ///////////////
+  ////SHORTPRESS
+  //////////////
+
+  function shortpress_action(evt) {
+    switch (evt.key) {
+      case "Backspace":
+        evt.preventDefault();
+
+        if (m.route.get().includes("/show_image")) {
+          m.route.set("/start");
+          break;
+        }
+
+        if (m.route.get().includes("/options")) {
+          m.route.set("/start");
+          break;
+        }
+        if (m.route.get().includes("/start")) {
+          window.close();
+        }
+
+      case "EndCall":
+        evt.preventDefault();
+
+        if (m.route.get().includes("/show_qr_content")) {
+          m.route.set("/show_image");
+          break;
+        }
+
+        if (m.route.get().includes("/show_image")) {
+          m.route.set("/start");
+          break;
+        }
+
+        if (m.route.get().includes("/start")) {
+          window.close();
+        }
+        break;
+
+      case "SoftLeft":
+      case "Control":
+        m.route.set("/show_qr_content");
+
+        break;
+
+      case "SoftRight":
+      case "Alt":
+        break;
+
+      case "Enter":
+        if (m.route.get().includes("/show_image")) {
+        }
+        break;
+
+      case "ArrowRight":
+        nav(+1);
+
+        break;
+
+      case "ArrowLeft":
+        nav(-1);
+        break;
+
+      case "ArrowUp":
+        nav(-1);
+        break;
+
+      case "ArrowDown":
+        nav(+1);
+        break;
+    }
+  }
+
+  /////////////////////////////////
+  ////shortpress / longpress logic
+  ////////////////////////////////
+
+  function handleKeyDown(evt) {
+    if (evt.key === "EndCall") {
       evt.preventDefault();
-      if (window_status == "page-view") {
-        show_image_list();
-        return;
-      }
-      if (window_status == "page-options") {
-        show_image_list();
-        return;
-      }
-      if (window_status == "page_qr_content") {
-        show_options();
-        return;
-      }
-
-      if (window_status == "page-list") {
+      if (m.route.get().includes("/start")) {
         window.close();
       }
+    }
 
-      if (window_status == "page-scan") {
-        qr.stop_scan();
-        show_options();
-        return;
+    if (evt.key === "Backspace") {
+      evt.preventDefault();
+      if (m.route.get().includes("/start")) {
+        window.close();
       }
+    }
 
-      break;
+    if (!evt.repeat) {
+      longpress = false;
+      timeout = setTimeout(() => {
+        longpress = true;
+        longpress_action(evt);
+      }, longpress_timespan);
+    }
 
-    case "ArrowDown":
-      nav("+1");
-      break;
+    if (evt.repeat) {
+      if (evt.key == "Backspace") evt.preventDefault();
 
-    case "ArrowUp":
-      nav("-1");
-      break;
-
-    case "ArrowLeft":
-      if (window_status == "page-list") {
-        document.activeElement.classList.remove("delete");
-      }
-      break;
-
-    case "ArrowRight":
-      if (window_status == "page-list") {
-        window_status = "rename_file";
-        var a = prompt("Enter new filename");
-        if (a != null) {
-          renameFile(document.activeElement.getAttribute("data-path"), a);
-          setTimeout(() => {
-            window.location.reload();
-          }, 4000);
-        } else {
-          setTimeout(() => {
-            window_status = "page-list";
-          }, 4000);
-        }
-      }
-
-      break;
-
-    case "SoftRight":
-      if (window_status == "page-list") {
-        show_options();
-      }
-
-      break;
+      longpress = false;
+      repeat_action(evt);
+    }
   }
-}
 
-document.addEventListener("keydown", handleKeyDown);
-document.addEventListener("keyup", handleKeyUp);
+  function handleKeyUp(evt) {
+    evt.preventDefault();
+
+    if (evt.key == "Backspace") evt.preventDefault();
+
+    clearTimeout(timeout);
+    if (!longpress) {
+      shortpress_action(evt);
+    }
+  }
+
+  document.addEventListener("keydown", handleKeyDown);
+  document.addEventListener("keyup", handleKeyUp);
+});
+
+if (debug) {
+  window.onerror = function (msg, url, linenumber) {
+    alert(
+      "Error message: " + msg + "\nURL: " + url + "\nLine Number: " + linenumber
+    );
+    return true;
+  };
+}

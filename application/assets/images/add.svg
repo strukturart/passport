@@ -7,7 +7,7 @@
    viewBox="0 0 40 40"
    version="1.1"
    id="svg5"
-   inkscape:version="1.1 (c4e8f9e, 2021-05-24)"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    sodipodi:docname="add.svg"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -54,14 +54,14 @@
          r="20" />
       <text
          xml:space="preserve"
-         style="font-size:26.8369px;line-height:22.8724px;font-family:Barlow;-inkscape-font-specification:'Barlow, Normal';letter-spacing:0px;word-spacing:0px;fill:#272900;stroke:#000000;stroke-width:0.914891px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;fill-opacity:1"
-         x="98.290771"
+         style="font-size:26.8369px;line-height:22.8724px;font-family:Barlow;-inkscape-font-specification:'Barlow, Normal';letter-spacing:0px;word-spacing:0px;fill:#272900;fill-opacity:1;stroke:#000000;stroke-width:0.914891px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+         x="94.586601"
          y="157.00729"
          id="text1838"><tspan
            sodipodi:role="line"
            id="tspan1836"
-           style="stroke-width:0.914891px;fill:#272900;fill-opacity:1"
-           x="98.290771"
+           style="fill:#272900;fill-opacity:1;stroke-width:0.914891px"
+           x="94.586601"
            y="157.00729">+</tspan></text>
     </g>
   </g>
