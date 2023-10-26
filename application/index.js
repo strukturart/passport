@@ -26,41 +26,78 @@ let set_tabindex = () => {
 //NAVIGATION
 
 let nav = function (move) {
-  // set_tabindex();
+  const currentIndex = Array.from(document.querySelectorAll(".item")).findIndex(
+    (item) => item === document.activeElement
+  );
+  const items = document.querySelectorAll(".item");
+  const itemCount = items.length;
 
-  const currentIndex = document.activeElement.tabIndex;
-  let next = currentIndex + move;
-  let items = 0;
+  if (currentIndex >= 0) {
+    let nextIndex = currentIndex + move;
 
-  items = document.querySelectorAll(".item");
+    // Ensure nextIndex stays within bounds
+    if (nextIndex < 0) {
+      nextIndex = itemCount - 1;
+    } else if (nextIndex >= itemCount) {
+      nextIndex = 0;
+    }
 
-  let targetElement = 0;
-
-  if (next <= items.length) {
-    targetElement = items[next];
+    const targetElement = items[nextIndex];
     targetElement.focus();
+
+    // Scroll to the focused element if it's not in view
+    const rect = targetElement.getBoundingClientRect();
+    const elY =
+      rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
+
+    if (elY < 0 || elY > window.innerHeight) {
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
   }
-
-  if (next == items.length) {
-    targetElement = items[0];
-    targetElement.focus();
-  }
-
-  const rect = document.activeElement.getBoundingClientRect();
-  const elY =
-    rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
-
-  document.activeElement.parentElement.parentElement.scrollBy({
-    left: 0,
-    top: elY - window.innerHeight / 2,
-    behavior: "smooth",
-  });
 };
 
 //list dic
 
 try {
   var d = navigator.getDeviceStorage("sdcard");
+  /*
+  d.getRoot().then((e) => {
+    e.getFilesAndDirectories().then((e) => {
+      let n = e.find(
+        (entry) => entry.name === "passport" && entry instanceof Directory
+      );
+
+      if (n) {
+        n.getFiles()
+          .then((ff) => {
+            ff.forEach((file) => {
+              console.log(file.name);
+              let file_name = file.name;
+              let type = file_name.split(".");
+              let f = URL.createObjectURL(file);
+
+              files.push({
+                "path": n.path + "/" + file.name,
+                "name": file_name,
+                "file": f,
+                "type": type[type.length - 1],
+              });
+            });
+            m.route.set("/start");
+          })
+          .catch((error) => {
+            console.error(
+              "Error getting files from passport directory:",
+              error
+            );
+          });
+      }
+    });
+  });
+  */
 
   var cursor = d.enumerate();
 
@@ -69,14 +106,23 @@ try {
       m.route.set("/start");
     }
     if (cursor.result.name !== null) {
-      var file = cursor.result;
+      let file = cursor.result;
       let m = file.name.split("/");
       let file_name = m[m.length - 1];
-
+      alert(file.name);
+      let type = file_name.split(".");
       let f = URL.createObjectURL(file);
 
-      if (file.name.includes("sdcard/passport/")) {
-        files.push({ "path": f, "name": file_name, "file": file.name });
+      if (
+        file.name.includes("/passport/") &&
+        !file.name.includes("/sdcard/.")
+      ) {
+        files.push({
+          "path": file.name,
+          "name": file_name,
+          "file": f,
+          "type": type[type.length - 1],
+        });
       }
       this.continue();
     }
@@ -98,7 +144,7 @@ if ("b2g" in navigator) {
         .next()
         .then((file) => {
           if (!file.done) {
-            let fileExtension = file.value.name.slice(-3); // Get the last three characters of the file name
+            let fileExtension = file.value.name.slice(-3); //
 
             if (fileExtension == "dic") {
               files.push({ path: file.value.name, name: file.value.name });
@@ -125,6 +171,12 @@ let load_qrcode_content = (filepath) => {
   try {
     sdcard = navigator.getDeviceStorage("sdcard");
   } catch (e) {}
+
+  if ("b2g" in navigator) {
+    try {
+      sdcard = navigator.b2g.getDeviceStorage("sdcard");
+    } catch (e) {}
+  }
 
   let request = sdcard.get(filepath);
 
@@ -187,10 +239,96 @@ let load_qrcode_content = (filepath) => {
   };
 };
 
+let pdfContainer; // Define pdfContainer in a higher scope
+
+let zoomIn, zoomOut; // Declare zoomIn and zoomOut
+
+let pdf_viewer = (filepath) => {
+  let sdcard = "";
+
+  try {
+    sdcard = navigator.getDeviceStorage("sdcard");
+  } catch (e) {}
+
+  if ("b2g" in navigator) {
+    try {
+      sdcard = navigator.b2g.getDeviceStorage("sdcard");
+    } catch (e) {}
+  }
+
+  let request = sdcard.get(filepath);
+  let pdfDocument;
+  let currentPage = 1;
+  let currentScale = 1.0; // Initial scale factor
+
+  request.onsuccess = function (e) {
+    const file = e.target.result; // The retrieved file
+
+    const reader = new FileReader();
+
+    reader.addEventListener("load", function (event) {
+      const arrayBuffer = event.target.result; // This is the ArrayBuffer
+
+      if (arrayBuffer instanceof ArrayBuffer) {
+        const blob = new Blob([arrayBuffer]);
+
+        pdfContainer = document.getElementById("pdf-container"); // Assign pdfContainer
+
+        // Specify the URL of the PDF document
+        var pdfUrl = URL.createObjectURL(blob);
+
+        // Load and render the PDF
+        pdfjsLib.getDocument(pdfUrl).promise.then(function (doc) {
+          pdfDocument = doc;
+          renderPage(pdfContainer);
+        });
+      }
+    });
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  function renderPage(container) {
+    pdfDocument.getPage(currentPage).then(function (page) {
+      var viewport = page.getViewport({ scale: currentScale });
+
+      // Prepare the canvas element to render the PDF
+      var canvas = document.createElement("canvas");
+      var context = canvas.getContext("2d");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+
+      container.innerHTML = ""; // Clear previous content
+      container.appendChild(canvas);
+
+      // Render the PDF page on the canvas
+      page.render({
+        canvasContext: context,
+        viewport: viewport,
+      });
+    });
+  }
+
+  // Zoom in function
+  zoomIn = function () {
+    currentScale += 0.2; // You can adjust the zoom increment as needed
+    renderPage(pdfContainer);
+  };
+
+  // Zoom out function
+  zoomOut = function () {
+    if (currentScale > 0.2) {
+      // Limit the minimum zoom level
+      currentScale -= 0.2; // You can adjust the zoom decrement as needed
+      renderPage(pdfContainer);
+    }
+  };
+};
+
 //VIEWS
 
 let startup = true;
-let t = 5000;
+let t = 4000;
 
 document.addEventListener("DOMContentLoaded", function () {
   var root = document.querySelector("main");
@@ -203,13 +341,15 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             id: "intro",
             oncreate: () => {
-              startup
-                ? (t = 5000)
-                : (document.querySelector("#intro").style.display = "none");
-              setTimeout(() => {
+              if (startup) {
+                setTimeout(() => {
+                  document.querySelector("#intro").style.display = "none";
+                  startup = false;
+                }, t);
+              } else {
                 document.querySelector("#intro").style.display = "none";
-                startup = false;
-              }, t);
+                t = 0;
+              }
             },
           },
           [m("img", { src: "/assets/icons/icon-112-112.png" })]
@@ -218,12 +358,30 @@ document.addEventListener("DOMContentLoaded", function () {
           "ul",
           {
             id: "files-list",
-            oncreate: () => {
-              helper.bottom_bar(
-                "",
-                "<img src='assets/images/select.svg'>",
-                "<img src='assets/images/option.svg'>"
-              );
+            oncreate: ({ dom }) => {
+              setTimeout(() => {
+                if (files.length == 0) {
+                  dom,
+                    m.render(
+                      dom,
+                      m.trust(
+                        "<div id='no-file'>No file found<br>Please create a folder called passport and put your qr code files there.</div>"
+                      )
+                    );
+
+                  helper.bottom_bar(
+                    "",
+                    "",
+                    "<img src='assets/images/option.svg'>"
+                  );
+                } else {
+                  helper.bottom_bar(
+                    "",
+                    "<img src='assets/images/select.svg'>",
+                    "<img src='assets/images/option.svg'>"
+                  );
+                }
+              }, t);
             },
           },
           [
@@ -235,6 +393,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   tabindex: i,
                   "data-path": e.path,
                   "data-file": e.file,
+                  "data-type": e.type,
                   oncreate: ({ dom }) => {
                     if (i == 0) {
                       dom.focus();
@@ -243,11 +402,18 @@ document.addEventListener("DOMContentLoaded", function () {
                   onkeydown: (e) => {
                     if (e.keyCode === 13) {
                       selected_image =
-                        document.activeElement.getAttribute("data-path");
-                      selected_image_url =
                         document.activeElement.getAttribute("data-file");
+                      selected_image_url =
+                        document.activeElement.getAttribute("data-path");
 
-                      m.route.set("/show_image");
+                      if (
+                        document.activeElement.getAttribute("data-type") ==
+                        "pdf"
+                      ) {
+                        m.route.set("/show_pdf");
+                      } else {
+                        m.route.set("/show_image");
+                      }
                     }
 
                     if (e.key === "SoftRight") {
@@ -276,27 +442,41 @@ document.addEventListener("DOMContentLoaded", function () {
           oncreate: () => {
             helper.bottom_bar("", "", "");
           },
-
-          onkeydown: (e) => {
-            if (e.key === "Backspace") {
-              m.route.set("/show_image");
-            }
-          },
         },
 
         [
+          m(
+            "kbd",
+            {
+              class: "item test",
+              oncreate: ({ dom }) => {
+                set_tabindex();
+              },
+            },
+            "Passport"
+          ),
+
           m("div", {
             id: "text",
             oncreate: ({ dom }) => {
               m.render(
                 dom,
                 m.trust(
-                  "<kbd class='item'>Parrot</kbd> <br>With this app you can expand and maintain the vocabulary of your predictive text. <br><br> Credits: Mithril.js <br>License: MIT<br><br>"
+                  "The app is a file viewer for JPG, PNG and PDF files. It should help you display your QR code tickets more quickly during checks.The files must be stored in the order/passport so that they can be displayed. <br><br> Credits: Mithril.js <br>License: MIT<br><br>"
                 )
               );
             },
           }),
-          m("kbd", "KaiOs Ads"),
+          m(
+            "kbd",
+            {
+              class: "item",
+              oncreate: () => {
+                document.querySelector(".item").focus();
+              },
+            },
+            "KaiOs Ads"
+          ),
 
           m("div", { id: "KaiOsAds-Wrapper", class: "item" }),
         ]
@@ -313,6 +493,24 @@ document.addEventListener("DOMContentLoaded", function () {
           oninit: () => {
             helper.bottom_bar("", "", "");
             load_qrcode_content(selected_image_url);
+          },
+        }),
+      ]);
+    },
+  };
+
+  var show_pdf = {
+    view: function () {
+      return m("div", {}, [
+        m("div", {
+          id: "pdf-container",
+          oninit: () => {
+            helper.bottom_bar(
+              "<img src='assets/images/plus.svg'>",
+              "",
+              "<img src='assets/images/minus.svg'>"
+            );
+            pdf_viewer(selected_image_url);
           },
         }),
       ]);
@@ -337,6 +535,7 @@ document.addEventListener("DOMContentLoaded", function () {
   m.route(root, "/start", {
     "/show_qr_content": show_qr_content,
     "/show_image": show_image,
+    "/show_pdf": show_pdf,
     "/start": start,
     "/options": options,
   });
@@ -395,6 +594,11 @@ document.addEventListener("DOMContentLoaded", function () {
           break;
         }
 
+        if (m.route.get().includes("/show_pdf")) {
+          m.route.set("/start");
+          break;
+        }
+
         if (m.route.get().includes("/options")) {
           m.route.set("/start");
           break;
@@ -416,6 +620,11 @@ document.addEventListener("DOMContentLoaded", function () {
           break;
         }
 
+        if (m.route.get().includes("/show_pdf")) {
+          m.route.set("/start");
+          break;
+        }
+
         if (m.route.get().includes("/start")) {
           window.close();
         }
@@ -423,34 +632,74 @@ document.addEventListener("DOMContentLoaded", function () {
 
       case "SoftLeft":
       case "Control":
-        m.route.set("/show_qr_content");
+        if (m.route.get().includes("/show_image")) {
+          m.route.set("/show_qr_content");
+          break;
+        }
+
+        if (m.route.get().includes("/show_pdf")) {
+          zoomIn();
+          break;
+        }
 
         break;
 
       case "SoftRight":
       case "Alt":
-        break;
+        if (m.route.get().includes("/show_pdf")) {
+          zoomOut();
+          break;
+        }
 
-      case "Enter":
-        if (m.route.get().includes("/show_image")) {
+        if (m.route.get().includes("/start")) {
+          m.route.set("/options");
+
+          break;
         }
         break;
 
+      case "1":
+        break;
+
+      case "Enter":
+        break;
+
       case "ArrowRight":
-        nav(+1);
+        if (m.route.get().includes("/show_pdf")) {
+          pdfContainer.scrollLeft += 50; // Adjust the scroll distance as needed
+        }
 
         break;
 
       case "ArrowLeft":
-        nav(-1);
+        if (m.route.get().includes("/show_pdf")) {
+          pdfContainer.scrollLeft -= 50; // Adjust the scroll distance as needed
+        }
+
         break;
 
       case "ArrowUp":
-        nav(-1);
+        if (m.route.get().includes("/show_pdf")) {
+          pdfContainer.scrollTop -= 50; // Adjust the scroll distance as needed
+        }
+        if (
+          m.route.get().includes("/start") ||
+          m.route.get().includes("/options")
+        ) {
+          nav(-1);
+        }
         break;
 
       case "ArrowDown":
-        nav(+1);
+        if (m.route.get().includes("/show_pdf")) {
+          pdfContainer.scrollTop += 50; // Adjust the scroll distance as needed
+        }
+        if (
+          m.route.get().includes("/start") ||
+          m.route.get().includes("/options")
+        ) {
+          nav(+1);
+        }
         break;
     }
   }
