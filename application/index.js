@@ -59,6 +59,24 @@ let nav = function (move) {
   }
 };
 
+try {
+  var d = navigator.getDeviceStorage("sdcard");
+
+  d.get("passport").then((j) => {
+    console.log(j);
+  });
+
+  d.getRoot().then((e) => {
+    e.createDirectory("passport")
+      .then((h) => {
+        console.log("done");
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  });
+} catch (e) {}
+
 //list dic
 
 try {
@@ -109,7 +127,6 @@ try {
       let file = cursor.result;
       let m = file.name.split("/");
       let file_name = m[m.length - 1];
-      alert(file.name);
       let type = file_name.split(".");
       let f = URL.createObjectURL(file);
 
@@ -144,11 +161,21 @@ if ("b2g" in navigator) {
         .next()
         .then((file) => {
           if (!file.done) {
-            let fileExtension = file.value.name.slice(-3); //
+            let m = file.value.name.split("/");
+            let file_name = m[m.length - 1];
+            let type = file.value.name.slice(-3);
+            let f = URL.createObjectURL(file);
 
-            if (fileExtension == "dic") {
-              files.push({ path: file.value.name, name: file.value.name });
-              m.route.set("/start");
+            if (
+              file.value.name.includes("/passport/") &&
+              !file.value.name.includes("/sdcard/.")
+            ) {
+              files.push({
+                "path": file.value.name,
+                "name": file_name,
+                "file": f,
+                "type": type[type.length - 1],
+              });
             }
 
             next(_files);
@@ -365,7 +392,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     m.render(
                       dom,
                       m.trust(
-                        "<div id='no-file'>No file found<br>Please create a folder called passport and put your qr code files there.</div>"
+                        "<div id='no-file'>No file found<br>Please put your files in the created folder <kbd>/passport</kbd></div>"
                       )
                     );
 
@@ -462,7 +489,7 @@ document.addEventListener("DOMContentLoaded", function () {
               m.render(
                 dom,
                 m.trust(
-                  "The app is a file viewer for JPG, PNG and PDF files. It should help you display your QR code tickets more quickly during checks.The files must be stored in the order/passport so that they can be displayed. <br><br> Credits: Mithril.js <br>License: MIT<br><br>"
+                  "The app is a file viewer for JPG, PNG and PDF files. It should help you display your QR code tickets more quickly during checks.The files must be stored in the order/passport so that they can be displayed. <br><br> Credits: Mithril.js, PDF.js <br>License: MIT<br><br>"
                 )
               );
             },
