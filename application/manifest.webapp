@@ -1,7 +1,7 @@
 {
-	"version": "1.0.42",
+	"version": "1.0.44",
 	"name": "passport",
-	"description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder  passport  are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app.",
+	"description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder  passport  are listed.",
 	"launch_path": "/index.html",
 	"fullscreen": "true",
 	"lang": "en-US",
@@ -26,7 +26,7 @@
 		"en-US": {
 			"name": "Passport",
 			"subtitle": "Ticket please",
-	"description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder passport  are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app."
+			"description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder passport  are listed."
 		}
 	},
 
@@ -44,7 +44,7 @@
 		"video-capture": {
 		"description": "Reading Codes using the Camera"
 		},
-			"mobiledata": {},
+		"mobiledata": {},
 		"wifidata": {},
 		"calllog": {}
 

@@ -78,10 +78,10 @@ try {
 } catch (e) {}
 
 //list dic
-
-try {
-  var d = navigator.getDeviceStorage("sdcard");
-  /*
+let read_files = () => {
+  try {
+    var d = navigator.getDeviceStorage("sdcard");
+    /*
   d.getRoot().then((e) => {
     e.getFilesAndDirectories().then((e) => {
       let n = e.find(
@@ -117,80 +117,82 @@ try {
   });
   */
 
-  var cursor = d.enumerate();
+    var cursor = d.enumerate();
 
-  cursor.onsuccess = function () {
-    if (!this.result) {
-      m.route.set("/start");
-    }
-    if (cursor.result.name !== null) {
-      let file = cursor.result;
-      let m = file.name.split("/");
-      let file_name = m[m.length - 1];
-      let type = file_name.split(".");
-      let f = URL.createObjectURL(file);
-
-      if (
-        file.name.includes("/passport/") &&
-        !file.name.includes("/sdcard/.")
-      ) {
-        files.push({
-          "path": file.name,
-          "name": file_name,
-          "file": f,
-          "type": type[type.length - 1],
-        });
+    cursor.onsuccess = function () {
+      if (!this.result) {
+        m.route.set("/start");
       }
-      this.continue();
-    }
-  };
+      if (cursor.result.name !== null) {
+        let file = cursor.result;
+        let m = file.name.split("/");
+        let file_name = m[m.length - 1];
+        let type = file_name.split(".");
+        let f = URL.createObjectURL(file);
 
-  cursor.onerror = function () {
-    console.warn("No file found: " + this.error);
-  };
-} catch (e) {}
+        if (
+          file.name.includes("/passport/") &&
+          !file.name.includes("/sdcard/.")
+        ) {
+          files.push({
+            "path": file.name,
+            "name": file_name,
+            "file": f,
+            "type": type[type.length - 1],
+          });
+        }
+        this.continue();
+      }
+    };
 
-if ("b2g" in navigator) {
-  try {
-    var sdcard = navigator.b2g.getDeviceStorage("sdcard");
-    var iterable = sdcard.enumerate();
-    var iterFiles = iterable.values();
+    cursor.onerror = function () {
+      console.warn("No file found: " + this.error);
+    };
+  } catch (e) {}
 
-    function next(_files) {
-      _files
-        .next()
-        .then((file) => {
-          if (!file.done) {
-            let m = file.value.name.split("/");
-            let file_name = m[m.length - 1];
-            let type = file.value.name.slice(-3);
-            let f = URL.createObjectURL(file);
+  if ("b2g" in navigator) {
+    try {
+      var sdcard = navigator.b2g.getDeviceStorage("sdcard");
+      var iterable = sdcard.enumerate();
+      var iterFiles = iterable.values();
 
-            if (
-              file.value.name.includes("/passport/") &&
-              !file.value.name.includes("/sdcard/.")
-            ) {
-              files.push({
-                "path": file.value.name,
-                "name": file_name,
-                "file": f,
-                "type": type[type.length - 1],
-              });
+      function next(_files) {
+        _files
+          .next()
+          .then((file) => {
+            if (!file.done) {
+              let m = file.value.name.split("/");
+              let file_name = m[m.length - 1];
+              let type = file.value.name.slice(-3);
+              let f = URL.createObjectURL(file);
+
+              if (
+                file.value.name.includes("/passport/") &&
+                !file.value.name.includes("/sdcard/.")
+              ) {
+                files.push({
+                  "path": file.value.name,
+                  "name": file_name,
+                  "file": f,
+                  "type": type[type.length - 1],
+                });
+              }
+
+              next(_files);
             }
-
+          })
+          .catch(() => {
             next(_files);
-          }
-        })
-        .catch(() => {
-          next(_files);
-        });
-    }
+          });
+      }
 
-    next(iterFiles);
-  } catch (e) {
-    alert(e);
+      next(iterFiles);
+    } catch (e) {
+      alert(e);
+    }
   }
-}
+};
+read_files();
 
 let load_qrcode_content = (filepath) => {
   let sdcard = "";
@@ -352,6 +354,53 @@ let pdf_viewer = (filepath) => {
   };
 };
 
+function write_file(data, filename) {
+  let sdcard = navigator.getDeviceStorage("sdcard");
+  var file = new Blob([data], {
+    type: "image/png ",
+  });
+  var request = sdcard.addNamed(file, filename);
+
+  request.onsuccess = function () {
+    var name = this.result;
+    files = [];
+    read_files();
+    startup = true;
+    m.route.set("/start");
+  };
+
+  // An error typically occur if a file with the same name already exist
+  request.onerror = function () {
+    helper.side_toaster("Unable to write the file", 2000);
+    m.route.set("/start");
+  };
+}
+
+let generate_qr = (string) => {
+  status = "";
+
+  var qrs = new QRious();
+
+  qrs.set({
+    background: "white",
+    foreground: "black",
+    level: "H",
+    padding: 5,
+    size: 1200,
+    value: string,
+  });
+
+  qrs.toDataURL();
+
+  fetch(qrs.toDataURL())
+    .then((res) => res.blob())
+    .then((blob) => {
+      let f = new Date();
+      f = f / 1000;
+      write_file(blob, "passport/" + f + ".png");
+    });
+};
+
 //VIEWS
 
 let startup = true;
@@ -385,6 +434,7 @@ document.addEventListener("DOMContentLoaded", function () {
           "ul",
           {
             id: "files-list",
+
             oncreate: ({ dom }) => {
               setTimeout(() => {
                 if (files.length == 0) {
@@ -403,7 +453,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   );
                 } else {
                   helper.bottom_bar(
-                    "",
+                    "<img src='assets/images/qr.svg'>",
                     "<img src='assets/images/select.svg'>",
                     "<img src='assets/images/option.svg'>"
                   );
@@ -445,6 +495,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     if (e.key === "SoftRight") {
                       m.route.set("/options");
+                    }
+
+                    if (e.key === "SoftLeft") {
+                      m.route.set("/scan");
                     }
                   },
                 },
@@ -552,10 +606,37 @@ document.addEventListener("DOMContentLoaded", function () {
           id: "qr-content",
           oninit: () => {
             helper.bottom_bar("", "", "");
+            if (status == "after_scan") {
+              helper.bottom_bar("", "<img src='assets/images/save.svg'>", "");
+            }
           },
         },
         qrcode_content
       );
+    },
+  };
+  let status;
+  let scan_callback = (e) => {
+    qrcode_content = e;
+    m.route.set("/show_qr_content");
+    status = "after_scan";
+  };
+
+  var scan = {
+    view: function () {
+      return m("div", [
+        m("video", {
+          id: "video",
+          oncreate: () => {
+            helper.bottom_bar("", "", "");
+            qr.start_scan(scan_callback);
+          },
+        }),
+        m("div", { id: "corner-nw" }),
+        m("div", { id: "corner-no" }),
+        m("div", { id: "corner-so" }),
+        m("div", { id: "corner-sw" }),
+      ]);
     },
   };
 
@@ -565,6 +646,7 @@ document.addEventListener("DOMContentLoaded", function () {
     "/show_pdf": show_pdf,
     "/start": start,
     "/options": options,
+    "/scan": scan,
   });
 
   m.route.prefix = "#";
@@ -630,15 +712,28 @@ document.addEventListener("DOMContentLoaded", function () {
           m.route.set("/start");
           break;
         }
+
+        if (m.route.get().includes("/scan")) {
+          m.route.set("/start");
+          break;
+        }
         if (m.route.get().includes("/start")) {
           window.close();
+        }
+        if (m.route.get().includes("/show_qr_content")) {
+          if (status == "after_scan") {
+            m.route.set("/start");
+          }
+          break;
         }
 
       case "EndCall":
         evt.preventDefault();
 
         if (m.route.get().includes("/show_qr_content")) {
-          m.route.set("/show_image");
+          if (status == "") m.route.set("/show_image");
+          if (status == "after_scan") m.route.set("/start");
+
           break;
         }
 
@@ -669,6 +764,11 @@ document.addEventListener("DOMContentLoaded", function () {
           break;
         }
 
+        if (m.route.get().includes("/start")) {
+          m.route.set("/scan");
+
+          break;
+        }
         break;
 
       case "SoftRight":
@@ -683,12 +783,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
           break;
         }
+
         break;
 
       case "1":
         break;
 
       case "Enter":
+        if (m.route.get().includes("/show_qr_content")) {
+          if (status != "") {
+            generate_qr(qrcode_content);
+          }
+        }
         break;
 
       case "ArrowRight":

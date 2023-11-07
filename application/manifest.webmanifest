@@ -1,6 +1,7 @@
 {
   "name": "passport",
-  "description": "At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder / passport / are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app.",
+  "id": "passport",
+  "description": "At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder / passport / are listed.",
   "lang": "en-US",
   "start_url": "/index.html",
   "icons": [
@@ -16,7 +17,10 @@
     }
   ],
   "b2g_features": {
-    "version": "1.0.0",
+    "id": "passport",
+    "core": true,
+    "categories": ["utilities"],
+    "version": "1.0.1",
     "type": "privileged",
     "fullscreen": "true",
     "developer": {
