@@ -26,37 +26,35 @@ let set_tabindex = () => {
 //NAVIGATION
 
 let nav = function (move) {
-  const currentIndex = Array.from(document.querySelectorAll(".item")).findIndex(
-    (item) => item === document.activeElement
-  );
-  const items = document.querySelectorAll(".item");
-  const itemCount = items.length;
+  set_tabindex();
 
-  if (currentIndex >= 0) {
-    let nextIndex = currentIndex + move;
+  const currentIndex = document.activeElement.tabIndex;
+  let next = currentIndex + move;
+  let items = 0;
 
-    // Ensure nextIndex stays within bounds
-    if (nextIndex < 0) {
-      nextIndex = itemCount - 1;
-    } else if (nextIndex >= itemCount) {
-      nextIndex = 0;
-    }
+  items = document.querySelectorAll(".item");
 
-    const targetElement = items[nextIndex];
+  let targetElement = 0;
+
+  if (next <= items.length) {
+    targetElement = items[next];
     targetElement.focus();
-
-    // Scroll to the focused element if it's not in view
-    const rect = targetElement.getBoundingClientRect();
-    const elY =
-      rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
-
-    if (elY < 0 || elY > window.innerHeight) {
-      targetElement.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
-    }
   }
+
+  if (next == items.length) {
+    targetElement = items[0];
+    targetElement.focus();
+  }
+
+  const rect = document.activeElement.getBoundingClientRect();
+  const elY =
+    rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
+
+  document.activeElement.parentElement.parentElement.scrollBy({
+    left: 0,
+    top: elY - window.innerHeight / 2,
+    behavior: "smooth",
+  });
 };
 
 try {
@@ -366,7 +364,7 @@ function write_file(data, filename) {
     files = [];
     read_files();
     startup = true;
-    m.route.set("/start");
+    m.route.set("/start?focus=" + filename);
   };
 
   // An error typically occur if a file with the same name already exist
@@ -408,7 +406,7 @@ let t = 4000;
 
 document.addEventListener("DOMContentLoaded", function () {
   var root = document.querySelector("main");
-
+  var p = "";
   var start = {
     view: function () {
       return m("div", [
@@ -416,6 +414,7 @@ document.addEventListener("DOMContentLoaded", function () {
           "div",
           {
             id: "intro",
+
             oncreate: () => {
               if (startup) {
                 setTimeout(() => {
@@ -434,7 +433,9 @@ document.addEventListener("DOMContentLoaded", function () {
           "ul",
           {
             id: "files-list",
-
+            oninit: () => {
+              p = m.route.param("focus");
+            },
             oncreate: ({ dom }) => {
               setTimeout(() => {
                 if (files.length == 0) {
@@ -472,8 +473,14 @@ document.addEventListener("DOMContentLoaded", function () {
                   "data-file": e.file,
                   "data-type": e.type,
                   oncreate: ({ dom }) => {
-                    if (i == 0) {
+                    if (e.path.includes(p)) {
+                      setTimeout(() => {
+                        dom.focus();
+                      }, 400);
+                    }
+                    if (i == 0 && p == "") {
                       dom.focus();
+                      document.querySelector("#no-file").style.display = "none";
                     }
                   },
                   onkeydown: (e) => {
@@ -699,7 +706,8 @@ document.addEventListener("DOMContentLoaded", function () {
         evt.preventDefault();
 
         if (m.route.get().includes("/show_image")) {
-          m.route.set("/start");
+          m.route.set("/start?focus=" + selected_image_url);
+
           break;
         }
 
@@ -723,6 +731,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (m.route.get().includes("/show_qr_content")) {
           if (status == "after_scan") {
             m.route.set("/start");
+          } else {
+            m.route.set("/show_image");
           }
           break;
         }

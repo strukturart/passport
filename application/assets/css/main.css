@@ -320,8 +320,8 @@ div#intro img {
   display: block;
   width: 35%;
   position: absolute;
-  left: 30%;
-  top: 30%;
+  left: 32%;
+  top: 35%;
 }
 
 /*ADS*/
@@ -353,6 +353,10 @@ div#KaiOsAds-Wrapper div {
 
   overflow: hidden;
   padding: 0px;
+}
+
+ul#files-list {
+  padding: 0 0 50px 0;
 }
 
 li {
