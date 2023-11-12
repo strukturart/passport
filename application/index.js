@@ -1,6 +1,6 @@
 "use strict";
 
-let debug = false;
+let debug = true;
 let filter_query;
 let file_content = [];
 let current_file;
@@ -151,6 +151,7 @@ let read_files = () => {
   if ("b2g" in navigator) {
     try {
       var sdcard = navigator.b2g.getDeviceStorage("sdcard");
+
       var iterable = sdcard.enumerate();
       var iterFiles = iterable.values();
 
@@ -159,25 +160,26 @@ let read_files = () => {
           .next()
           .then((file) => {
             if (!file.done) {
-              let m = file.value.name.split("/");
-              let file_name = m[m.length - 1];
-              let type = file.value.name.slice(-3);
-              let f = URL.createObjectURL(file);
+              /*
+              try {
+                let m = file.value.name.split("/");
+                let file_name = m[m.length - 1];
+                let type = file.value.name.slice(-3);
+                let f = URL.createObjectURL(file.value);
 
-              if (
-                file.value.name.includes("/passport/") &&
-                !file.value.name.includes("/sdcard/.")
-              ) {
                 files.push({
                   "path": file.value.name,
                   "name": file_name,
                   "file": f,
                   "type": type[type.length - 1],
                 });
+              } catch (e) {
+                alert(e);
               }
-
-              next(_files);
+              */
             }
+
+            next(_files);
           })
           .catch(() => {
             next(_files);
@@ -353,14 +355,19 @@ let pdf_viewer = (filepath) => {
 };
 
 function write_file(data, filename) {
-  let sdcard = navigator.getDeviceStorage("sdcard");
+  let sdcard;
+  if ("b2g" in navigator) {
+    sdcard = navigator.b2g.getDeviceStorage("sdcard");
+  } else {
+    sdcard = navigator.getDeviceStorage("sdcard");
+  }
+
   var file = new Blob([data], {
     type: "image/png ",
   });
   var request = sdcard.addNamed(file, filename);
 
   request.onsuccess = function () {
-    var name = this.result;
     files = [];
     read_files();
     startup = true;
@@ -369,7 +376,7 @@ function write_file(data, filename) {
 
   // An error typically occur if a file with the same name already exist
   request.onerror = function () {
-    helper.side_toaster("Unable to write the file", 2000);
+    helper.side_toaster("Unable to write the file", 10000);
     m.route.set("/start");
   };
 }
@@ -424,10 +431,11 @@ document.addEventListener("DOMContentLoaded", function () {
               } else {
                 document.querySelector("#intro").style.display = "none";
                 t = 0;
+                status == "";
               }
             },
           },
-          [m("img", { src: "/assets/icons/icon-112-112.png" })]
+          [m("img", { src: "assets/icons/icon-112-112.png" })]
         ),
         m(
           "ul",
@@ -448,7 +456,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
                   helper.bottom_bar(
-                    "",
+                    "<img src='assets/images/qr.svg'>",
                     "",
                     "<img src='assets/images/option.svg'>"
                   );
@@ -691,7 +699,9 @@ document.addEventListener("DOMContentLoaded", function () {
       case "*":
         break;
 
-      case "Backspace":
+      case "Enter":
+        if (m.route.get().includes("/start")) {
+        }
         break;
     }
   }
@@ -712,7 +722,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (m.route.get().includes("/show_pdf")) {
-          m.route.set("/start");
+          m.route.set("/start?focus=" + selected_image_url);
           break;
         }
 
@@ -740,20 +750,13 @@ document.addEventListener("DOMContentLoaded", function () {
       case "EndCall":
         evt.preventDefault();
 
-        if (m.route.get().includes("/show_qr_content")) {
-          if (status == "") m.route.set("/show_image");
-          if (status == "after_scan") m.route.set("/start");
-
-          break;
-        }
-
         if (m.route.get().includes("/show_image")) {
-          m.route.set("/start");
+          m.route.set("/start?focus=" + selected_image_url);
           break;
         }
 
         if (m.route.get().includes("/show_pdf")) {
-          m.route.set("/start");
+          m.route.set("/start?focus=" + selected_image_url);
           break;
         }
 
@@ -776,7 +779,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (m.route.get().includes("/start")) {
           m.route.set("/scan");
-
           break;
         }
         break;
@@ -790,13 +792,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (m.route.get().includes("/start")) {
           m.route.set("/options");
-
           break;
         }
 
-        break;
-
-      case "1":
         break;
 
       case "Enter":
