@@ -1,6 +1,6 @@
 "use strict";
 
-let debug = true;
+let debug = false;
 let filter_query;
 let file_content = [];
 let current_file;
@@ -10,6 +10,7 @@ let action_element = null;
 let selected_image;
 let selected_image_url;
 let qrcode_content;
+let status;
 
 let set_tabindex = () => {
   document
@@ -46,6 +47,18 @@ let nav = function (move) {
     targetElement.focus();
   }
 
+  const rect = document.activeElement.getBoundingClientRect();
+  const elY =
+    rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
+
+  document.activeElement.parentElement.parentElement.scrollBy({
+    left: 0,
+    top: elY - window.innerHeight / 2,
+    behavior: "smooth",
+  });
+};
+
+let scroll_into_center = () => {
   const rect = document.activeElement.getBoundingClientRect();
   const elY =
     rect.top - document.body.getBoundingClientRect().top + rect.height / 2;
@@ -196,6 +209,7 @@ read_files();
 
 let load_qrcode_content = (filepath) => {
   let sdcard = "";
+  window.open("https://id.podcal.app/do.ics");
 
   try {
     sdcard = navigator.getDeviceStorage("sdcard");
@@ -484,6 +498,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (e.path.includes(p)) {
                       setTimeout(() => {
                         dom.focus();
+                        scroll_into_center();
                       }, 400);
                     }
                     if (i == 0 && p == "") {
@@ -630,7 +645,6 @@ document.addEventListener("DOMContentLoaded", function () {
       );
     },
   };
-  let status;
   let scan_callback = (e) => {
     qrcode_content = e;
     m.route.set("/show_qr_content");
@@ -698,11 +712,6 @@ document.addEventListener("DOMContentLoaded", function () {
     switch (param.key) {
       case "*":
         break;
-
-      case "Enter":
-        if (m.route.get().includes("/start")) {
-        }
-        break;
     }
   }
 
@@ -723,6 +732,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (m.route.get().includes("/show_pdf")) {
           m.route.set("/start?focus=" + selected_image_url);
+
           break;
         }
 
@@ -752,11 +762,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (m.route.get().includes("/show_image")) {
           m.route.set("/start?focus=" + selected_image_url);
+
           break;
         }
 
         if (m.route.get().includes("/show_pdf")) {
           m.route.set("/start?focus=" + selected_image_url);
+
           break;
         }
 
