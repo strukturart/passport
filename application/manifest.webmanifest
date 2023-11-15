@@ -35,6 +35,7 @@
       "video-capture": {
         "description": "Reading Codes using the Camera"
       }
+ 
     }
   }
 }
