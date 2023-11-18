@@ -1,6 +1,6 @@
 "use strict";
 
-let debug = false;
+let debug = true;
 let filter_query;
 let file_content = [];
 let current_file;
@@ -11,6 +11,15 @@ let selected_image;
 let selected_image_url;
 let qrcode_content;
 let status;
+
+if (debug) {
+  window.onerror = function (msg, url, linenumber) {
+    alert(
+      "Error message: " + msg + "\nURL: " + url + "\nLine Number: " + linenumber
+    );
+    return true;
+  };
+}
 
 let set_tabindex = () => {
   document
@@ -69,7 +78,7 @@ let scroll_into_center = () => {
     behavior: "smooth",
   });
 };
-
+/*
 try {
   var d = navigator.getDeviceStorage("sdcard");
 
@@ -87,7 +96,7 @@ try {
       });
   });
 } catch (e) {}
-
+*/
 //list dic
 let read_files = () => {
   try {
@@ -164,7 +173,6 @@ let read_files = () => {
   if ("b2g" in navigator) {
     try {
       var sdcard = navigator.b2g.getDeviceStorage("sdcard");
-
       var iterable = sdcard.enumerate();
       var iterFiles = iterable.values();
 
@@ -173,26 +181,30 @@ let read_files = () => {
           .next()
           .then((file) => {
             if (!file.done) {
-              /*
+              let m = file.value.name.split("/");
+              let file_name = m[m.length - 1];
+
+              let f = "";
+
               try {
-                let m = file.value.name.split("/");
-                let file_name = m[m.length - 1];
-                let type = file.value.name.slice(-3);
-                let f = URL.createObjectURL(file.value);
+                f = URL.createObjectURL(file.value);
+              } catch (e) {}
 
+              if (
+                file.value.name.includes("/passport/") &&
+                !file.value.name.includes("/sdcard/.")
+              ) {
                 files.push({
-                  "path": file.value.name,
-                  "name": file_name,
-                  "file": f,
-                  "type": type[type.length - 1],
+                  path: file.value.name,
+                  file: f,
+                  type: file_name.split(".").pop(),
+                  name: file_name,
                 });
-              } catch (e) {
-                alert(e);
+                m.route.set("/start");
               }
-              */
-            }
 
-            next(_files);
+              next(_files);
+            }
           })
           .catch(() => {
             next(_files);
@@ -209,17 +221,6 @@ read_files();
 
 let load_qrcode_content = (filepath) => {
   let sdcard = "";
-  try {
-    new window.MozActivity({
-      name: "view",
-      data: {
-        type: "url",
-        url: "https://id.podcal.app/290783428.ics",
-      },
-    });
-  } catch (e) {
-    alert(e);
-  }
 
   try {
     sdcard = navigator.getDeviceStorage("sdcard");
@@ -433,11 +434,13 @@ let generate_qr = (string) => {
 //VIEWS
 
 let startup = true;
-let t = 4000;
+let t = 5000;
 
 document.addEventListener("DOMContentLoaded", function () {
   var root = document.querySelector("main");
   var p = "";
+
+  //VIEWS
   var start = {
     view: function () {
       return m("div", [
@@ -864,6 +867,12 @@ document.addEventListener("DOMContentLoaded", function () {
           nav(+1);
         }
         break;
+
+      case "7":
+        alert("klkl");
+        read_files();
+
+        break;
     }
   }
 
@@ -916,12 +925,3 @@ document.addEventListener("DOMContentLoaded", function () {
   document.addEventListener("keydown", handleKeyDown);
   document.addEventListener("keyup", handleKeyUp);
 });
-
-if (debug) {
-  window.onerror = function (msg, url, linenumber) {
-    alert(
-      "Error message: " + msg + "\nURL: " + url + "\nLine Number: " + linenumber
-    );
-    return true;
-  };
-}
