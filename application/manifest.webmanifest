@@ -1,7 +1,7 @@
 {
   "name": "passport",
   "id": "passport",
-  "description": "With parrot you can expand and maintain the vocabulary of the predictive text",
+  "description": "At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder / passport / are listed.",
 
   "lang": "en-US",
   "start_url": "/index.html",
@@ -22,7 +22,7 @@
   ],
 
   "b2g_features": {
-    "version": "0.0.708",
+    "version": "0.0.710",
     "id": "parrot",
     "core": true,
     "categories": ["utilities"],

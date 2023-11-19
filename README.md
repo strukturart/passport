@@ -2,6 +2,8 @@
 
 # Passport
 
+![image-1](/images/passport_mockup.png)
+
 At times it is practically fast to access digital train / airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder / passport / are listed. To avoid cumbersome copying from one device to another, a QR code can be scanned and saved with the app.
 
 NEW<br>

@@ -1,6 +1,6 @@
 "use strict";
 
-let debug = true;
+let debug = false;
 let filter_query;
 let file_content = [];
 let current_file;
@@ -78,9 +78,12 @@ let scroll_into_center = () => {
     behavior: "smooth",
   });
 };
-/*
+
 try {
   var d = navigator.getDeviceStorage("sdcard");
+  if ("b2g" in navigator) {
+    d = navigator.b2g.getDeviceStorage("sdcard");
+  }
 
   d.get("passport").then((j) => {
     console.log(j);
@@ -96,46 +99,11 @@ try {
       });
   });
 } catch (e) {}
-*/
+
 //list dic
 let read_files = () => {
   try {
     var d = navigator.getDeviceStorage("sdcard");
-    /*
-  d.getRoot().then((e) => {
-    e.getFilesAndDirectories().then((e) => {
-      let n = e.find(
-        (entry) => entry.name === "passport" && entry instanceof Directory
-      );
-
-      if (n) {
-        n.getFiles()
-          .then((ff) => {
-            ff.forEach((file) => {
-              console.log(file.name);
-              let file_name = file.name;
-              let type = file_name.split(".");
-              let f = URL.createObjectURL(file);
-
-              files.push({
-                "path": n.path + "/" + file.name,
-                "name": file_name,
-                "file": f,
-                "type": type[type.length - 1],
-              });
-            });
-            m.route.set("/start");
-          })
-          .catch((error) => {
-            console.error(
-              "Error getting files from passport directory:",
-              error
-            );
-          });
-      }
-    });
-  });
-  */
 
     var cursor = d.enumerate();
 
@@ -200,11 +168,11 @@ let read_files = () => {
                   type: file_name.split(".").pop(),
                   name: file_name,
                 });
-                m.route.set("/start");
               }
 
               next(_files);
             }
+            if (file.done) m.route.set("/start");
           })
           .catch(() => {
             next(_files);
@@ -434,7 +402,7 @@ let generate_qr = (string) => {
 //VIEWS
 
 let startup = true;
-let t = 5000;
+let t = 4000;
 
 document.addEventListener("DOMContentLoaded", function () {
   var root = document.querySelector("main");
@@ -458,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
               } else {
                 document.querySelector("#intro").style.display = "none";
                 t = 0;
-                status == "";
+                status = "";
               }
             },
           },
@@ -469,7 +437,7 @@ document.addEventListener("DOMContentLoaded", function () {
           {
             id: "files-list",
             oninit: () => {
-              p = m.route.param("focus");
+              p = m.route.param("focus") || "";
             },
             oncreate: ({ dom }) => {
               setTimeout(() => {
@@ -514,7 +482,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         scroll_into_center();
                       }, 400);
                     }
-                    if (i == 0 && p == "") {
+                    if (i == 1 && p == "") {
                       dom.focus();
                       document.querySelector("#no-file").style.display = "none";
                     }
@@ -586,7 +554,7 @@ document.addEventListener("DOMContentLoaded", function () {
               m.render(
                 dom,
                 m.trust(
-                  "The app is a file viewer for JPG, PNG and PDF files. It should help you display your QR code tickets more quickly during checks.The files must be stored in the order/passport so that they can be displayed. <br><br> Credits: Mithril.js, PDF.js <br>License: MIT<br><br>"
+                  "The app is a file viewer for JPG, PNG and PDF files. It should help you display your QR code tickets more quickly during checks.The files must be stored in the directory /passport so that they can be displayed. <br><br> Credits: Mithril.js, PDF.js <br>License: MIT<br><br>"
                 )
               );
             },
@@ -866,12 +834,6 @@ document.addEventListener("DOMContentLoaded", function () {
         ) {
           nav(+1);
         }
-        break;
-
-      case "7":
-        alert("klkl");
-        read_files();
-
         break;
     }
   }
