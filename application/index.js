@@ -12,6 +12,11 @@ let selected_image_url;
 let qrcode_content;
 let status;
 
+let general = {
+  fileAction: false,
+  blocker: false,
+};
+
 if (debug) {
   window.onerror = function (msg, url, linenumber) {
     alert(
@@ -36,6 +41,7 @@ let set_tabindex = () => {
 //NAVIGATION
 
 let nav = function (move) {
+  general.fileAction = false;
   set_tabindex();
 
   const currentIndex = document.activeElement.tabIndex;
@@ -45,6 +51,8 @@ let nav = function (move) {
   items = document.querySelectorAll(".item");
 
   let targetElement = 0;
+
+  console.log(next);
 
   if (next <= items.length) {
     targetElement = items[next];
@@ -65,6 +73,13 @@ let nav = function (move) {
     top: elY - window.innerHeight / 2,
     behavior: "smooth",
   });
+  if (m.route.get().includes("/start")) {
+    helper.bottom_bar(
+      "<img src='assets/images/qr.svg'>",
+      "<img src='assets/images/select.svg'>",
+      "<img src='assets/images/option.svg'>"
+    );
+  }
 };
 
 let scroll_into_center = () => {
@@ -505,10 +520,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
 
                     if (e.key === "SoftRight") {
+                      if (general.fileAction) return false;
                       m.route.set("/options");
                     }
 
                     if (e.key === "SoftLeft") {
+                      if (general.fileAction) return false;
+
                       m.route.set("/scan");
                     }
                   },
@@ -771,7 +789,25 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (m.route.get().includes("/start")) {
-          m.route.set("/scan");
+          if (general.fileAction) {
+            general.blocker = true;
+            let name = String(window.prompt("Enter name", ""));
+            if (name != null && name != "") {
+              helper.renameFile(
+                document.activeElement.getAttribute("data-path"),
+                name
+              );
+              setTimeout(() => {
+                general.blocker = false;
+              }, 2000);
+            } else {
+              setTimeout(() => {
+                general.blocker = false;
+              }, 2000);
+            }
+          } else {
+            m.route.set("/scan");
+          }
           break;
         }
         break;
@@ -784,7 +820,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (m.route.get().includes("/start")) {
-          m.route.set("/options");
+          if (general.fileAction) {
+            helper.deleteFile(document.activeElement.getAttribute("data-path"));
+          } else {
+            m.route.set("/options");
+          }
           break;
         }
 
@@ -835,6 +875,18 @@ document.addEventListener("DOMContentLoaded", function () {
           nav(+1);
         }
         break;
+
+      case "2":
+        if (m.route.get().includes("/start")) {
+          general.fileAction = true;
+          helper.bottom_bar(
+            "<img src='assets/images/pencil.svg'>",
+            "",
+            "<img src='assets/images/delete.svg'>"
+          );
+        }
+
+        break;
     }
   }
 
@@ -843,6 +895,8 @@ document.addEventListener("DOMContentLoaded", function () {
   ////////////////////////////////
 
   function handleKeyDown(evt) {
+    if (general.blocker) return false;
+
     if (evt.key === "EndCall") {
       evt.preventDefault();
       if (m.route.get().includes("/start")) {
@@ -874,6 +928,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function handleKeyUp(evt) {
+    if (general.blocker) return false;
+
     evt.preventDefault();
 
     if (evt.key == "Backspace") evt.preventDefault();
