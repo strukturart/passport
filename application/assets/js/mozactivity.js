@@ -116,9 +116,51 @@ const mozactivity = (() => {
     } catch (e) {}
   };
 
+  let pickGallery = (callback) => {
+    try {
+      let pick = new MozActivity({
+        name: "pick",
+        data: {
+          type: ["image/png", "image/jpg", "image/jpeg"],
+        },
+      });
+
+      pick.onsuccess = function (e) {
+        console.log("hey" + pick.result.blob);
+        callback(pick);
+      };
+
+      pick.onerror = function () {
+        alert("The activity encounter en error: " + this.error);
+      };
+    } catch (e) {
+      console.log(e);
+    }
+
+    try {
+      let pick = new WebActivity({
+        name: "pick",
+        data: {
+          type: ["image/png", "image/jpg", "image/jpeg"],
+        },
+      });
+
+      pick.start().then(
+        (rv) => {
+          console.log("Results passed back from activity handler:");
+          console.log(rv);
+        },
+        (err) => {
+          console.log(err);
+        }
+      );
+    } catch (e) {}
+  };
+
   return {
     photo,
     share_position,
     openSettings,
+    pickGallery,
   };
 })();

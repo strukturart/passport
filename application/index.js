@@ -12,6 +12,12 @@ let selected_image_url;
 let qrcode_content;
 let status;
 
+let general = {
+  fileAction: false,
+  importAction: false,
+  blocker: false,
+};
+
 if (debug) {
   window.onerror = function (msg, url, linenumber) {
     alert(
@@ -36,6 +42,9 @@ let set_tabindex = () => {
 //NAVIGATION
 
 let nav = function (move) {
+  general.fileAction = false;
+  general.importAction = false;
+
   set_tabindex();
 
   const currentIndex = document.activeElement.tabIndex;
@@ -45,6 +54,8 @@ let nav = function (move) {
   items = document.querySelectorAll(".item");
 
   let targetElement = 0;
+
+  console.log(next);
 
   if (next <= items.length) {
     targetElement = items[next];
@@ -65,6 +76,13 @@ let nav = function (move) {
     top: elY - window.innerHeight / 2,
     behavior: "smooth",
   });
+  if (m.route.get().includes("/start")) {
+    helper.bottom_bar(
+      "<img src='assets/images/save.svg'>",
+      "<img src='assets/images/select.svg'>",
+      "<img src='assets/images/option.svg'>"
+    );
+  }
 };
 
 let scroll_into_center = () => {
@@ -85,23 +103,20 @@ try {
     d = navigator.b2g.getDeviceStorage("sdcard");
   }
 
-  d.get("passport").then((j) => {
-    console.log(j);
-  });
+  d.get("passport").then((j) => {});
 
   d.getRoot().then((e) => {
     e.createDirectory("passport")
       .then((h) => {
         console.log("done");
       })
-      .catch((error) => {
-        console.error(error);
-      });
+      .catch((error) => {});
   });
 } catch (e) {}
 
 //list dic
 let read_files = () => {
+  files = [];
   try {
     var d = navigator.getDeviceStorage("sdcard");
 
@@ -451,13 +466,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
 
                   helper.bottom_bar(
-                    "<img src='assets/images/qr.svg'>",
+                    "<img src='assets/images/save.svg'>",
                     "",
                     "<img src='assets/images/option.svg'>"
                   );
                 } else {
                   helper.bottom_bar(
-                    "<img src='assets/images/qr.svg'>",
+                    "<img src='assets/images/save.svg'>",
                     "<img src='assets/images/select.svg'>",
                     "<img src='assets/images/option.svg'>"
                   );
@@ -485,31 +500,6 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (i == 1 && p == "") {
                       dom.focus();
                       document.querySelector("#no-file").style.display = "none";
-                    }
-                  },
-                  onkeydown: (e) => {
-                    if (e.keyCode === 13) {
-                      selected_image =
-                        document.activeElement.getAttribute("data-file");
-                      selected_image_url =
-                        document.activeElement.getAttribute("data-path");
-
-                      if (
-                        document.activeElement.getAttribute("data-type") ==
-                        "pdf"
-                      ) {
-                        m.route.set("/show_pdf");
-                      } else {
-                        m.route.set("/show_image");
-                      }
-                    }
-
-                    if (e.key === "SoftRight") {
-                      m.route.set("/options");
-                    }
-
-                    if (e.key === "SoftLeft") {
-                      m.route.set("/scan");
                     }
                   },
                 },
@@ -661,6 +651,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   m.route.prefix = "#";
 
+  let pickGalllery_callback = (e) => {
+    let fileName = e.result.blob.name.split("/");
+    fileName = fileName[fileName.length - 1];
+
+    write_file(e.result.blob, "passport/" + fileName);
+  };
+
+  let renameFile_callback = (filename) => {
+    read_files();
+
+    setTimeout(() => {
+      document.querySelector("[data-filepath='" + filename + "']").focus();
+    }, 2000);
+  };
+
   //////////////////////////////
   ////KEYPAD HANDLER////////////
   //////////////////////////////
@@ -771,7 +776,32 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         if (m.route.get().includes("/start")) {
-          m.route.set("/scan");
+          if (general.fileAction) {
+            general.blocker = true;
+            let name = String(window.prompt("Enter name", ""));
+            if (name !== null) {
+              helper.renameFile(
+                document.activeElement.getAttribute("data-path"),
+                name,
+                renameFile_callback
+              );
+              setTimeout(() => {
+                general.blocker = false;
+              }, 2000);
+            } else {
+              setTimeout(() => {
+                general.blocker = false;
+              }, 2000);
+            }
+          } else {
+            general.importAction = true;
+            helper.bottom_bar(
+              "",
+              "<img src='assets/images/qr.svg'>",
+              "<img src='assets/images/image.svg'>"
+            );
+          }
+
           break;
         }
         break;
@@ -780,12 +810,22 @@ document.addEventListener("DOMContentLoaded", function () {
       case "Alt":
         if (m.route.get().includes("/show_pdf")) {
           zoomOut();
-          break;
         }
 
         if (m.route.get().includes("/start")) {
-          m.route.set("/options");
-          break;
+          if (general.fileAction) {
+            let filePath = document.activeElement.getAttribute("data-path");
+            helper.deleteFile(filePath);
+            break;
+          }
+          if (general.importAction) {
+            mozactivity.pickGallery(pickGalllery_callback);
+            break;
+          }
+
+          if (general.importAction == false && general.fileAction == false) {
+            m.route.set("/options");
+          }
         }
 
         break;
@@ -796,6 +836,21 @@ document.addEventListener("DOMContentLoaded", function () {
             generate_qr(qrcode_content);
           }
         }
+
+        if (m.route.get().includes("/start") && general.importAction) {
+          m.route.set("/scan");
+          general.importAction = false;
+        } else {
+          selected_image = document.activeElement.getAttribute("data-file");
+          selected_image_url = document.activeElement.getAttribute("data-path");
+
+          if (document.activeElement.getAttribute("data-type") == "pdf") {
+            m.route.set("/show_pdf");
+          } else {
+            m.route.set("/show_image");
+          }
+        }
+
         break;
 
       case "ArrowRight":
@@ -835,6 +890,18 @@ document.addEventListener("DOMContentLoaded", function () {
           nav(+1);
         }
         break;
+
+      case "2":
+        if (m.route.get().includes("/start")) {
+          general.fileAction = true;
+          helper.bottom_bar(
+            "<img src='assets/images/pencil.svg'>",
+            "",
+            "<img src='assets/images/delete.svg'>"
+          );
+        }
+
+        break;
     }
   }
 
@@ -843,6 +910,8 @@ document.addEventListener("DOMContentLoaded", function () {
   ////////////////////////////////
 
   function handleKeyDown(evt) {
+    if (general.blocker) return false;
+
     if (evt.key === "EndCall") {
       evt.preventDefault();
       if (m.route.get().includes("/start")) {
@@ -874,6 +943,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function handleKeyUp(evt) {
+    if (general.blocker) return false;
+
     evt.preventDefault();
 
     if (evt.key == "Backspace") evt.preventDefault();

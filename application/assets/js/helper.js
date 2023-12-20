@@ -175,7 +175,7 @@ const helper = (() => {
     requestDel.onsuccess = function () {
       helper.side_toaster("File successfully deleted", 2000);
 
-      document.querySelector("[data-filepath='" + filename + "']").remove();
+      document.querySelector("[data-path='" + filename + "']").remove();
     };
 
     requestDel.onerror = function () {
@@ -261,9 +261,7 @@ const helper = (() => {
   };
 
   //delete file
-  let renameFile = function (filename, content) {
-    var file_content = new Blob([content], { type: "text/plain" });
-
+  let renameFile = function (filename, new_filename, callback) {
     let sdcard = "";
 
     try {
@@ -279,28 +277,41 @@ const helper = (() => {
     let request = sdcard.get(filename);
 
     request.onsuccess = function () {
-      var request_del = sdcard.delete(filename);
+      let data = this.result;
 
-      request_del.onsuccess = function () {
-        // success copy and delete
-        let requestAdd = sdcard.addNamed(file_content, filename);
-        requestAdd.onsuccess = function () {
-          helper.side_toaster("saved successfully", 5000);
+      let file_extension = data.name.split(".");
+      file_extension = file_extension[file_extension.length - 1];
+
+      let filepath = data.name.split("/").slice(0, -1).join("/") + "/";
+
+      let requestAdd = sdcard.addNamed(
+        data,
+        filepath + new_filename + "." + file_extension
+      );
+      requestAdd.onsuccess = function () {
+        var request_del = sdcard.delete(data.name);
+
+        request_del.onsuccess = function () {
+          // success copy and delete
+          let a = new_filename + "." + file_extension;
+
+          callback(a);
+
+          helper.side_toaster("successfully renamed", 3000);
         };
-        requestAdd.onerror = function () {
-          helper.toaster("Unable to write the file", 3000);
+
+        request_del.onerror = function () {
+          // success copy not delete
+          toaster("Unable to write the file", 3000);
         };
       };
-
-      request_del.onerror = function () {
-        // success copy not delete
-        helper.toaster("Unable to write the file", 3000);
+      requestAdd.onerror = function () {
+        toaster("Unable to write the file", 3000);
       };
     };
 
     request.onerror = function () {
       toaster("Unable to write the file", 3000);
-      alert("no");
     };
   };
 
@@ -327,6 +338,29 @@ const helper = (() => {
     request.onerror = function () {
       helper.side_toaster("Unable to download the file", 2000);
     };
+  };
+
+  let addFile = function (filename, data, callback) {
+    let sdcard = "";
+
+    try {
+      sdcard = navigator.getDeviceStorage("sdcard");
+    } catch (e) {}
+
+    if ("b2g" in navigator) {
+      try {
+        sdcard = navigator.b2g.getDeviceStorage("sdcard");
+      } catch (e) {}
+    }
+
+    var filedata = new Blob([data]);
+
+    var request = sdcard.addNamed(filedata, filename);
+    request.onsuccess = function () {
+      console.log("file added");
+    };
+
+    request.onerror = function () {};
   };
 
   function calculateDatabaseSizeInMB(db) {
@@ -420,5 +454,6 @@ const helper = (() => {
     search_file,
     list_files,
     load_ads,
+    addFile,
   };
 })();
