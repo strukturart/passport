@@ -290,18 +290,60 @@ const helper = (() => {
       );
       requestAdd.onsuccess = function () {
         var request_del = sdcard.delete(data.name);
-
+	
         request_del.onsuccess = function () {
+	var d = navigator.getDeviceStorage("sdcard");
+
+var cursor = d.enumerate();
+
+cursor.onsuccess = function () {
+  if (!this.result) {
+    m.route.set("/start");
+  }
+  if (cursor.result.name !== null) {
+    let file = cursor.result;
+    let m = file.name.split("/");
+    let file_name = m[m.length - 1];
+    
+    // Check if the file is 'this_.png'
+    if (file_name.includes('new_filename')) {
+      let type = file_name.split(".");
+      let f = URL.createObjectURL(file);
+
+      // Do something with the selected file
+      console.log('Selected file:', file);
+    }
+  }
+};
           // success copy and delete
-	let n_e = document.querySelector("[data-path='" + filename + "']");
-	  
+	let request2 = sdcard.get(filepath + new_filename + "." + file_extension);
+    console.log(request2);
+    request2.onsuccess = function () {
+        let file = this.result;
+        let m = file.name.split("/");
+        let file_name = m[m.length - 1];
+        let type = file_name.split(".");
+        let f = URL.createObjectURL(file);
+
+      // Do something with the selected file
+      console.log('Selected file:', file);
+      let n_e = document.querySelector("[data-path='" + filename + "']");
 	 
           n_e.innerText = `${new_filename}.${file_extension}`;
           n_e.setAttribute("data-path", `${filepath}${new_filename}.${file_extension}`);
-	        document.getElementById('files-list').innerHTML = '';
-	        read_files();
-          document.querySelector("[data-filepath='" + filename + "']").focus();
-          helper.side_toaster("successfully renamed", 3000);
+	  files[n_e.getAttribute("tabindex")] = {
+            "path": `${filepath}${new_filename}.${file_extension}`,
+            "name": `${new_filename}`,
+            "file": f,
+            "type": file_extension,
+          }
+	  helper.side_toaster("successfully renamed", 3000);
+	  go_s();
+	  console.log(n_e.getAttribute("tabindex"));
+          
+	  
+  }
+
         };
 
         request_del.onerror = function () {
