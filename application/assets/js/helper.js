@@ -296,7 +296,7 @@ const helper = (() => {
 
           document.querySelector("[data-path='" + filename + "']").innerText =
             new_filename + "." + file_extension;
-
+          document.querySelector("[data-path='" + filename + "']").setAttribute("data-path", new_filename+ "." + file_extension);
           document.querySelector("[data-filepath='" + filename + "']").focus();
 
           helper.side_toaster("successfully renamed", 3000);
