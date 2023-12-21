@@ -302,16 +302,16 @@ const helper = (() => {
 
         request_del.onerror = function () {
           // success copy not delete
-          toaster("Unable to write the file", 3000);
+          helper.side_toaster("Unable to write the file", 3000);
         };
       };
       requestAdd.onerror = function () {
-        toaster("Unable to write the file", 3000);
+        helper.side_toaster("Unable to write the file", 3000);
       };
     };
 
     request.onerror = function () {
-      toaster("Unable to write the file", 3000);
+      helper.side_toaster("Unable to write the file", 3000);
     };
   };
 

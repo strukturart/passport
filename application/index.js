@@ -114,6 +114,10 @@ try {
   });
 } catch (e) {}
 
+let go_s = () => {
+m.route.set("/start");
+}
+
 //list dic
 let read_files = () => {
   files = [];
@@ -203,6 +207,7 @@ let read_files = () => {
 read_files();
 
 let load_qrcode_content = (filepath) => {
+console.log(filepath);
   let sdcard = "";
 
   try {
