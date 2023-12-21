@@ -293,12 +293,14 @@ const helper = (() => {
 
         request_del.onsuccess = function () {
           // success copy and delete
-
-          document.querySelector("[data-path='" + filename + "']").innerText =
-            new_filename + "." + file_extension;
-          document.querySelector("[data-path='" + filename + "']").setAttribute("data-path", new_filename+ "." + file_extension);
+	let n_e = document.querySelector("[data-path='" + filename + "']");
+	  
+	 
+          n_e.innerText = `${new_filename}.${file_extension}`;
+          n_e.setAttribute("data-path", `${filepath}${new_filename}.${file_extension}`);
+	        document.getElementById('files-list').innerHTML = '';
+	        read_files();
           document.querySelector("[data-filepath='" + filename + "']").focus();
-
           helper.side_toaster("successfully renamed", 3000);
         };
 
