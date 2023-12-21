@@ -61,6 +61,27 @@ kbd {
   margin: 0 0 5px 0;
 }
 
+kbd.title {
+  background: rgba(113, 86, 187, 0.4);
+}
+
+#intro-icon {
+  font-size: 1rem;
+  position: absolute;
+  left: 30%;
+  top: 40%;
+  border: 3px solid white;
+  box-shadow: 5px 5px white;
+  color: white;
+  line-height: 1.85em;
+  display: inline-block;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 3px 5px;
+  white-space: nowrap;
+  margin: 0 0 5px 0;
+}
+
 input {
   font-family: "Lato-Regular";
 }
@@ -401,7 +422,6 @@ main {
 
 main div {
   height: 90vh;
-
   max-height: 90vh;
   overflow: hidden !important;
   position: relative;

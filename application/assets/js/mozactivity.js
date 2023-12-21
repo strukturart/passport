@@ -126,12 +126,12 @@ const mozactivity = (() => {
       });
 
       pick.onsuccess = function (e) {
-        console.log("hey" + pick.result.blob);
         callback(pick);
       };
 
       pick.onerror = function () {
-        alert("The activity encounter en error: " + this.error);
+        general.blocker = false;
+        console.log("The activity encounter en error: " + this.error);
       };
     } catch (e) {
       console.log(e);
@@ -147,10 +147,15 @@ const mozactivity = (() => {
 
       pick.start().then(
         (rv) => {
+          general.blocker = false;
+          callback(pick);
+
           console.log("Results passed back from activity handler:");
           console.log(rv);
         },
         (err) => {
+          general.blocker = false;
+
           console.log(err);
         }
       );

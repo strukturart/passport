@@ -55,8 +55,6 @@ let nav = function (move) {
 
   let targetElement = 0;
 
-  console.log(next);
-
   if (next <= items.length) {
     targetElement = items[next];
     targetElement.focus();
@@ -114,12 +112,8 @@ try {
   });
 } catch (e) {}
 
-let go_s = () => {
-m.route.set("/start");
-}
-
-//list dic
-let read_files = () => {
+//list files
+let read_files = (callback) => {
   files = [];
   try {
     var d = navigator.getDeviceStorage("sdcard");
@@ -129,6 +123,7 @@ let read_files = () => {
     cursor.onsuccess = function () {
       if (!this.result) {
         m.route.set("/start");
+        callback();
       }
       if (cursor.result.name !== null) {
         let file = cursor.result;
@@ -207,7 +202,7 @@ let read_files = () => {
 read_files();
 
 let load_qrcode_content = (filepath) => {
-console.log(filepath);
+  console.log(filepath);
   let sdcard = "";
 
   try {
@@ -431,6 +426,8 @@ document.addEventListener("DOMContentLoaded", function () {
   //VIEWS
   var start = {
     view: function () {
+      p = m.route.param("focus") || "";
+      console.log("focus:" + p);
       return m("div", [
         m(
           "div",
@@ -450,15 +447,13 @@ document.addEventListener("DOMContentLoaded", function () {
               }
             },
           },
-          [m("img", { src: "assets/icons/icon-112-112.png" })]
+          [m("kbd", { id: "intro-icon" }, "passport")]
         ),
         m(
           "ul",
           {
             id: "files-list",
-            oninit: () => {
-              p = m.route.param("focus") || "";
-            },
+            oninit: () => {},
             oncreate: ({ dom }) => {
               setTimeout(() => {
                 if (files.length == 0) {
@@ -500,6 +495,8 @@ document.addEventListener("DOMContentLoaded", function () {
                       setTimeout(() => {
                         dom.focus();
                         scroll_into_center();
+                        document.querySelector("#no-file").style.display =
+                          "none";
                       }, 400);
                     }
                     if (i == 1 && p == "") {
@@ -531,42 +528,28 @@ document.addEventListener("DOMContentLoaded", function () {
           },
         },
 
-        [
-          m(
-            "kbd",
-            {
-              class: "item test",
-              oncreate: ({ dom }) => {
-                set_tabindex();
-              },
-            },
-            "Passport"
-          ),
-
-          m("div", {
-            id: "text",
-            oncreate: ({ dom }) => {
-              m.render(
-                dom,
-                m.trust(
-                  "The app is a file viewer for JPG, PNG and PDF files. It should help you display your QR code tickets more quickly during checks.The files must be stored in the directory /passport so that they can be displayed. <br><br> Credits: Mithril.js, PDF.js <br>License: MIT<br><br>"
-                )
-              );
-            },
-          }),
-          m(
-            "kbd",
-            {
-              class: "item",
-              oncreate: () => {
-                document.querySelector(".item").focus();
-              },
-            },
-            "KaiOs Ads"
-          ),
-
-          m("div", { id: "KaiOsAds-Wrapper", class: "item" }),
-        ]
+        m("div", {
+          id: "text",
+          oncreate: ({ dom }) => {
+            m.render(
+              dom,
+              m.trust(
+                "<em class='item'></em>" +
+                  "<kbd class='title'>Passport</kbd><br>" +
+                  "The app is a file viewer for JPG, PNG, and PDF files. It should help you display your QR code tickets more quickly during checks. The files must be stored in the directory /passport so that they can be displayed. <br><br>" +
+                  "<em class='item'></em>" +
+                  "<em class='item'></em>" +
+                  "<kbd>Good to know</kbd><br>With key 2, you can rename or delete files<br><br>" +
+                  "<kbd>Credits</kbd><br>Mithril.js, PDF.js<br><br>" +
+                  "<em class='item'></em>" +
+                  "<kbd>License</kbd><br> MIT<br><br>" +
+                  "<em class='item'></em>" +
+                  "<kbd>KaiOS Ads</kbd><br>" +
+                  "<div id='KaiOsAds-Wrapper' class='item'></div>"
+              )
+            );
+          },
+        })
       );
     },
   };
@@ -657,18 +640,60 @@ document.addEventListener("DOMContentLoaded", function () {
   m.route.prefix = "#";
 
   let pickGalllery_callback = (e) => {
+    general.blocker = false;
+
     let fileName = e.result.blob.name.split("/");
     fileName = fileName[fileName.length - 1];
 
     write_file(e.result.blob, "passport/" + fileName);
+    m.route.set("/start?focus=" + filename);
   };
 
   let renameFile_callback = (filename) => {
-    read_files();
+    general.blocker = false;
+    let cb = () => {
+      m.route.set("/start?focus=+/sdcard/passport/" + filename);
+    };
 
-    setTimeout(() => {
-      document.querySelector("[data-filepath='" + filename + "']").focus();
-    }, 2000);
+    read_files(cb);
+  };
+
+  let deleteFile_callback = (filename) => {
+    general.blocker = false;
+
+    let cb = () => {
+      if (files.length == 0) {
+        console.log("why");
+
+        setTimeout(() => {
+          m.route.set("/start");
+        }, 1000);
+      } else {
+        let currentFileElement = document.querySelector(
+          "[data-path='" + filename + "']"
+        );
+
+        // Get the tabindex attribute value and convert it to a number
+        let tabindex = currentFileElement.getAttribute("tabindex");
+        tabindex = Number(tabindex) - 1;
+        tabindex_next = tabindex + 2;
+
+        // Find the next element with the adjusted tabindex and set focus
+        let nextElement = document.querySelector(
+          "[tabindex='" + tabindex + "']"
+        );
+
+        if (nextElement) {
+          nextElement.focus();
+        } else {
+          nextElement = document.querySelector(
+            "[tabindex='" + tabindex_next + "']"
+          );
+          nextElement.focus();
+        }
+      }
+    };
+    read_files(cb);
   };
 
   //////////////////////////////
@@ -820,10 +845,15 @@ document.addEventListener("DOMContentLoaded", function () {
         if (m.route.get().includes("/start")) {
           if (general.fileAction) {
             let filePath = document.activeElement.getAttribute("data-path");
-            helper.deleteFile(filePath);
+            helper.deleteFile(filePath, deleteFile_callback);
             break;
           }
-          if (general.importAction) {
+          if (
+            m.route.get().includes("/start") &&
+            general.importAction &&
+            general.blocker == false
+          ) {
+            general.blocker = true;
             mozactivity.pickGallery(pickGalllery_callback);
             break;
           }
@@ -842,12 +872,17 @@ document.addEventListener("DOMContentLoaded", function () {
           }
         }
 
-        if (m.route.get().includes("/start") && general.importAction) {
+        if (
+          m.route.get().includes("/start") &&
+          general.importAction &&
+          general.blocker == false
+        ) {
           m.route.set("/scan");
           general.importAction = false;
         } else {
           selected_image = document.activeElement.getAttribute("data-file");
           selected_image_url = document.activeElement.getAttribute("data-path");
+          if (!selected_image) return false;
 
           if (document.activeElement.getAttribute("data-type") == "pdf") {
             m.route.set("/show_pdf");

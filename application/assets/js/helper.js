@@ -7,8 +7,8 @@ const helper = (() => {
     js.onload = function () {
       getKaiAd({
         publisher: "4408b6fa-4e1d-438f-af4d-f3be2fa97208",
-        app: "parrot",
-        slot: "parrot",
+        app: "passport",
+        slot: "passport",
         test: 0,
         timeout: 10000,
         h: 120,
@@ -157,7 +157,7 @@ const helper = (() => {
   };
 
   //delete file
-  let deleteFile = function (filename) {
+  let deleteFile = function (filename, callback) {
     let sdcard = "";
 
     try {
@@ -174,13 +174,13 @@ const helper = (() => {
 
     requestDel.onsuccess = function () {
       helper.side_toaster("File successfully deleted", 2000);
-
-      document.querySelector("[data-path='" + filename + "']").remove();
+      callback(filename);
     };
 
     requestDel.onerror = function () {
       console.log("error");
       helper.toaster("Unable to delete the file: " + this.error);
+      general.blocker = false;
     };
   };
 
@@ -303,15 +303,18 @@ const helper = (() => {
         request_del.onerror = function () {
           // success copy not delete
           helper.side_toaster("Unable to write the file", 3000);
+          general.blocker = false;
         };
       };
       requestAdd.onerror = function () {
         helper.side_toaster("Unable to write the file", 3000);
+        general.blocker = false;
       };
     };
 
     request.onerror = function () {
       helper.side_toaster("Unable to write the file", 3000);
+      general.blocker = false;
     };
   };
 

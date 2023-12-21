@@ -22,7 +22,7 @@
   ],
 
   "b2g_features": {
-    "version": "0.0.712",
+    "version": "0.0.718",
     "id": "parrot",
     "core": true,
     "categories": ["utilities"],
