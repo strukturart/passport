@@ -7,6 +7,9 @@
    width="112"
    sodipodi:docname="icon-112-112.svg"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   inkscape:export-filename="/home/strukturart/Desktop/Pages/passport/application/assets/icons/icon-112-112.png"
+   inkscape:export-xdpi="104.03245"
+   inkscape:export-ydpi="104.03245"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns="http://www.w3.org/2000/svg"
@@ -15,7 +18,7 @@
    xmlns:cc="http://creativecommons.org/ns#"
    xmlns:dc="http://purl.org/dc/elements/1.1/">
   <sodipodi:namedview
-     id="namedview12"
+     id="namedview11"
      pagecolor="#ffffff"
      bordercolor="#666666"
      borderopacity="1.0"
@@ -23,15 +26,15 @@
      inkscape:pageopacity="0.0"
      inkscape:pagecheckerboard="0"
      showgrid="false"
-     inkscape:zoom="6.9821429"
-     inkscape:cx="55.928389"
-     inkscape:cy="55.928389"
-     inkscape:window-width="1920"
-     inkscape:window-height="1016"
-     inkscape:window-x="0"
-     inkscape:window-y="0"
-     inkscape:window-maximized="1"
-     inkscape:current-layer="svg8" />
+     inkscape:zoom="1.9554289"
+     inkscape:cx="-32.729393"
+     inkscape:cy="23.524251"
+     inkscape:window-width="1551"
+     inkscape:window-height="991"
+     inkscape:window-x="26"
+     inkscape:window-y="23"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g899" />
   <defs
      id="defs2" />
   <metadata
@@ -46,35 +49,66 @@
     </rdf:RDF>
   </metadata>
   <g
-     transform="translate(0,-267.36665)"
+     transform="translate(0,-282.18332)"
      id="layer1">
     <g
-       transform="translate(0.10376063,3.1750001)"
-       id="g1052" />
-    <g
-       transform="translate(0.05525857,-10.333352)"
-       id="g822" />
-    <g
-       transform="matrix(2.1718429,0,0,2.1718429,-1.2730694,-346.76428)"
-       id="g61">
-      <rect
-         style="opacity:1;fill:#008080;fill-opacity:1;stroke:#ff5e67;stroke-width:0.23119783;stroke-opacity:0"
-         id="rect815"
-         width="11.939635"
-         height="12.056984"
-         x="1.4385157"
-         y="283.56317"
-         ry="1.564888" />
-      <text
-         xml:space="preserve"
-         style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-         x="3.283993"
-         y="293.29724"
-         id="text37"><tspan
-           id="tspan35"
-           x="3.283993"
-           y="293.29724"
-           style="stroke-width:0.26458332">✔</tspan></text>
+       transform="matrix(0.48193666,0,0,0.48193666,0.2676384,153.59717)"
+       id="layer1-3">
+      <g
+         transform="translate(0.10376063,3.1750001)"
+         id="g1052" />
+      <g
+         transform="translate(0.05525857,-10.333352)"
+         id="g822" />
+      <g
+         transform="matrix(2.1718429,0,0,2.1718429,-1.2730694,-346.76428)"
+         id="g61">
+        <g
+           id="g1414"
+           transform="translate(-0.36182368,-0.38728573)">
+          <g
+             id="g899"
+             transform="translate(-0.78914399,-1.0119133)">
+            <rect
+               style="fill:#000000;fill-opacity:1;stroke:#ff5e67;stroke-width:0.428043;stroke-opacity:0"
+               id="rect815-36"
+               width="22.104969"
+               height="22.322229"
+               x="5.3738232"
+               y="287.91953"
+               ry="11.052485"
+               rx="0" />
+            <rect
+               style="fill:#1a1a1a;fill-opacity:1;stroke:#ff5e67;stroke-width:0.428043;stroke-opacity:0"
+               id="rect815-3"
+               width="22.104969"
+               height="22.322229"
+               x="3.7955353"
+               y="285.89569"
+               ry="11.052485"
+               rx="0" />
+            <rect
+               style="opacity:1;fill:#008080;fill-opacity:1;stroke:#ff5e67;stroke-width:0.428043;stroke-opacity:0"
+               id="rect815"
+               width="22.104969"
+               height="22.322229"
+               x="3.7955353"
+               y="285.89569"
+               ry="11.052485"
+               rx="0" />
+            <text
+               xml:space="preserve"
+               style="font-style:normal;font-weight:normal;font-size:19.5942px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.489843"
+               x="8.6709356"
+               y="305.60556"
+               id="text37"><tspan
+                 id="tspan35"
+                 x="8.6709356"
+                 y="305.60556"
+                 style="fill:#000000;stroke-width:0.489843">✔</tspan></text>
+          </g>
+        </g>
+      </g>
     </g>
   </g>
 </svg>

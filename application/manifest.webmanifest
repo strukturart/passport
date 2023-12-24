@@ -6,7 +6,7 @@
   "lang": "en-US",
   "start_url": "/index.html",
   "priority": "high",
-  "userAgentInfo": "parrot written by strukturart@gmail.com",
+  "userAgentInfo": "passport written by strukturart@gmail.com",
 
   "icons": [
     {
@@ -22,8 +22,8 @@
   ],
 
   "b2g_features": {
-    "version": "0.0.718",
-    "id": "parrot",
+    "version": "0.0.730",
+    "id": "passport",
     "core": true,
     "categories": ["utilities"],
     "type": "privileged",
@@ -32,7 +32,7 @@
 
     "developer": {
       "name": "strukturart",
-      "url": "https://github.com/strukturart/parrot"
+      "url": "https://github.com/strukturart/passport"
     },
 
     "dependencies": {

@@ -1,47 +1,4 @@
 const mozactivity = (() => {
-  let share_position = function () {
-    let a =
-      "https://www.openstreetmap.org/?mlat=" +
-      mainmarker.current_lat +
-      "&mlon=" +
-      mainmarker.current_lng +
-      "#map=13/" +
-      mainmarker.current_lat +
-      "/" +
-      mainmarker.current_lng +
-      "&layers=T";
-    try {
-      let activity = new MozActivity({
-        name: "share",
-        data: {
-          type: "url",
-          url: a,
-        },
-      });
-
-      activity.onsuccess = function () {
-        console.log("successfully shared");
-      };
-
-      activity.onerror = function () {
-        console.log("The activity encounter en error: " + this.error);
-      };
-    } catch (e) {}
-
-    try {
-      let activity = new WebActivity("share", { type: "url", url: a });
-      activity.start().then(
-        (rv) => {
-          console.log("Results passed back from activity handler:");
-          console.log(rv);
-        },
-        (err) => {
-          console.log(err);
-        }
-      );
-    } catch (e) {}
-  };
-
   const photo = function () {
     try {
       let activity = new MozActivity({
@@ -126,7 +83,7 @@ const mozactivity = (() => {
       });
 
       pick.onsuccess = function (e) {
-        callback(pick);
+        callback(pick, "k2");
       };
 
       pick.onerror = function () {
@@ -137,9 +94,8 @@ const mozactivity = (() => {
       console.log(e);
     }
 
-    try {
-      let pick = new WebActivity({
-        name: "pick",
+    if ("b2g" in navigator) {
+      let pick = new WebActivity("pick", {
         data: {
           type: ["image/png", "image/jpg", "image/jpeg"],
         },
@@ -148,10 +104,7 @@ const mozactivity = (() => {
       pick.start().then(
         (rv) => {
           general.blocker = false;
-          callback(pick);
-
-          console.log("Results passed back from activity handler:");
-          console.log(rv);
+          callback(rv, "k3");
         },
         (err) => {
           general.blocker = false;
@@ -159,12 +112,11 @@ const mozactivity = (() => {
           console.log(err);
         }
       );
-    } catch (e) {}
+    }
   };
 
   return {
     photo,
-    share_position,
     openSettings,
     pickGallery,
   };

@@ -202,7 +202,6 @@ let read_files = (callback) => {
 read_files();
 
 let load_qrcode_content = (filepath) => {
-  console.log(filepath);
   let sdcard = "";
 
   try {
@@ -251,9 +250,11 @@ let load_qrcode_content = (filepath) => {
           if (code) {
             qrcode_content = code.data;
             helper.bottom_bar("<img src='assets/images/eye.svg'>", "", "");
+            document.querySelector(".loading-spinner").style.display = "none";
           } else {
             qrcode_content = "";
             helper.bottom_bar("", "", "");
+            document.querySelector(".loading-spinner").style.display = "none";
           }
         };
 
@@ -362,7 +363,7 @@ let pdf_viewer = (filepath) => {
   };
 };
 
-function write_file(data, filename) {
+function write_file(data, filename, filetype) {
   let sdcard;
   if ("b2g" in navigator) {
     sdcard = navigator.b2g.getDeviceStorage("sdcard");
@@ -371,14 +372,14 @@ function write_file(data, filename) {
   }
 
   var file = new Blob([data], {
-    type: "image/png ",
+    type: filetype,
   });
   var request = sdcard.addNamed(file, filename);
 
   request.onsuccess = function () {
     files = [];
     read_files();
-    startup = true;
+    startup = false;
     m.route.set("/start?focus=" + filename);
   };
 
@@ -410,7 +411,7 @@ let generate_qr = (string) => {
     .then((blob) => {
       let f = new Date();
       f = f / 1000;
-      write_file(blob, "passport/" + f + ".png");
+      write_file(blob, "passport/" + f + ".png", "image/png");
     });
 };
 
@@ -561,8 +562,16 @@ document.addEventListener("DOMContentLoaded", function () {
           src: selected_image,
           id: "image",
           oninit: () => {
+            document.querySelector(".loading-spinner").style.display = "block";
+          },
+          oncreate: () => {
+            qrcode_content = "";
             helper.bottom_bar("", "", "");
-            load_qrcode_content(selected_image_url);
+            try {
+              load_qrcode_content(selected_image_url);
+            } catch (e) {
+              document.querySelector(".loading-spinner").style.display = "none";
+            }
           },
         }),
       ]);
@@ -639,14 +648,23 @@ document.addEventListener("DOMContentLoaded", function () {
 
   m.route.prefix = "#";
 
-  let pickGalllery_callback = (e) => {
+  let pickGalllery_callback = (e, k) => {
     general.blocker = false;
 
-    let fileName = e.result.blob.name.split("/");
-    fileName = fileName[fileName.length - 1];
+    //KaiOS 2
+    if (k == "k2") {
+      let fileName = e.result.blob.name.split("/");
+      fileName = fileName[fileName.length - 1];
+      let type = fileName.includes(".png") ? "image/png" : "image/jpeg";
+      write_file(e.result.blob, "passport/" + fileName, type);
+    }
 
-    write_file(e.result.blob, "passport/" + fileName);
-    m.route.set("/start?focus=" + filename);
+    //KaiOS 3
+    if (k == "k3") {
+      let fileName = e.filename.split("/");
+      fileName = fileName[fileName.length - 1];
+      write_file(e.blob, "passport/" + fileName, e.type);
+    }
   };
 
   let renameFile_callback = (filename) => {
@@ -882,7 +900,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
           selected_image = document.activeElement.getAttribute("data-file");
           selected_image_url = document.activeElement.getAttribute("data-path");
-          if (!selected_image) return false;
+          if (selected_image == "") return false;
 
           if (document.activeElement.getAttribute("data-type") == "pdf") {
             m.route.set("/show_pdf");
