@@ -201,80 +201,42 @@ let read_files = (callback) => {
 };
 read_files();
 
-let load_qrcode_content = (filepath) => {
-  let sdcard = "";
+let load_qrcode_content = (blobUrl) => {
+  document.querySelector(".loading-spinner").style.display = "block";
 
-  try {
-    sdcard = navigator.getDeviceStorage("sdcard");
-  } catch (e) {}
+  const img = new Image();
 
-  if ("b2g" in navigator) {
-    try {
-      sdcard = navigator.b2g.getDeviceStorage("sdcard");
-    } catch (e) {}
-  }
+  img.onload = function () {
+    const width = img.width;
+    const height = img.height;
 
-  let request = sdcard.get(filepath);
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
 
-  request.onsuccess = function (e) {
-    const file = e.target.result; // The retrieved file
+    canvas.width = width;
+    canvas.height = height;
+    ctx.drawImage(img, 0, 0);
 
-    const reader = new FileReader();
+    const imageData = ctx.getImageData(0, 0, width, height);
+    const code = jsQR(imageData.data, width, height);
 
-    reader.addEventListener("load", function (event) {
-      const arrayBuffer = event.target.result; // This is the ArrayBuffer
-
-      if (arrayBuffer instanceof ArrayBuffer) {
-        const blob = new Blob([arrayBuffer]);
-
-        // Create an Image object
-        const img = new Image();
-
-        img.onload = function () {
-          const width = img.width; // Get the width of the image
-          const height = img.height; // Get the height of the image
-
-          // Create a canvas and draw the image on it
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0);
-
-          // Get image data
-          const imageData = ctx.getImageData(0, 0, width, height);
-
-          // Use jsQR to decode the QR code
-          const code = jsQR(imageData.data, width, height);
-
-          if (code) {
-            qrcode_content = code.data;
-            helper.bottom_bar("<img src='assets/images/eye.svg'>", "", "");
-            document.querySelector(".loading-spinner").style.display = "none";
-          } else {
-            qrcode_content = "";
-            helper.bottom_bar("", "", "");
-            document.querySelector(".loading-spinner").style.display = "none";
-          }
-        };
-
-        img.onerror = function () {
-          console.error("Failed to load the image.");
-        };
-
-        // Set the image source to the Blob URL
-        img.src = URL.createObjectURL(blob);
-      } else {
-        console.error("Invalid ArrayBuffer type.");
-      }
-    });
-
-    reader.readAsArrayBuffer(file);
+    if (code) {
+      qrcode_content = code.data;
+      helper.bottom_bar("<img src='assets/images/eye.svg'>", "", "");
+      document.querySelector(".loading-spinner").style.display = "none";
+    } else {
+      qrcode_content = "";
+      helper.bottom_bar("", "", "");
+      document.querySelector(".loading-spinner").style.display = "none";
+    }
   };
 
-  request.onerror = function (error) {
-    console.log(error);
+  img.onerror = function () {
+    console.error("Failed to load the image.");
+    document.querySelector(".loading-spinner").style.display = "none";
   };
+
+  img.src = blobUrl;
 };
 
 let pdfContainer; // Define pdfContainer in a higher scope
@@ -561,14 +523,12 @@ document.addEventListener("DOMContentLoaded", function () {
         m("img", {
           src: selected_image,
           id: "image",
-          oninit: () => {
-            document.querySelector(".loading-spinner").style.display = "block";
-          },
+          oninit: () => {},
           oncreate: () => {
             qrcode_content = "";
             helper.bottom_bar("", "", "");
             try {
-              load_qrcode_content(selected_image_url);
+              load_qrcode_content(selected_image);
             } catch (e) {
               document.querySelector(".loading-spinner").style.display = "none";
             }
@@ -758,55 +718,48 @@ document.addEventListener("DOMContentLoaded", function () {
       case "Backspace":
         evt.preventDefault();
 
-        if (m.route.get().includes("/show_image")) {
-          m.route.set("/start?focus=" + selected_image_url);
-
-          break;
-        }
-
-        if (m.route.get().includes("/show_pdf")) {
-          m.route.set("/start?focus=" + selected_image_url);
-
-          break;
-        }
-
-        if (m.route.get().includes("/options")) {
+        if (general.importAction) {
           m.route.set("/start");
-          break;
-        }
-
-        if (m.route.get().includes("/scan")) {
+          general.importAction = false;
+          helper.bottom_bar(
+            "<img src='assets/images/save.svg'>",
+            "",
+            "<img src='assets/images/option.svg'>"
+          );
+        } else if (m.route.get().includes("/show_image")) {
+          m.route.set("/start?focus=" + selected_image_url);
+        } else if (m.route.get().includes("/show_pdf")) {
+          m.route.set("/start?focus=" + selected_image_url);
+        } else if (m.route.get().includes("/options")) {
           m.route.set("/start");
-          break;
-        }
-        if (m.route.get().includes("/start")) {
-          window.close();
-        }
-        if (m.route.get().includes("/show_qr_content")) {
+        } else if (m.route.get().includes("/scan")) {
+          m.route.set("/start");
+        } else if (
+          m.route.get().includes("/start") &&
+          general.importAction == false
+        ) {
+          // window.close();
+        } else if (m.route.get().includes("/show_qr_content")) {
           if (status == "after_scan") {
             m.route.set("/start");
           } else {
             m.route.set("/show_image");
           }
-          break;
+        } else {
+          window.close();
         }
+        break;
 
       case "EndCall":
         evt.preventDefault();
 
         if (m.route.get().includes("/show_image")) {
           m.route.set("/start?focus=" + selected_image_url);
-
-          break;
-        }
-
-        if (m.route.get().includes("/show_pdf")) {
+        } else if (m.route.get().includes("/show_pdf")) {
           m.route.set("/start?focus=" + selected_image_url);
 
           break;
-        }
-
-        if (m.route.get().includes("/start")) {
+        } else {
           window.close();
         }
         break;
@@ -900,7 +853,8 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
           selected_image = document.activeElement.getAttribute("data-file");
           selected_image_url = document.activeElement.getAttribute("data-path");
-          if (selected_image == "") return false;
+          if (selected_image == null) return false;
+          if (files.length == 0) return false;
 
           if (document.activeElement.getAttribute("data-type") == "pdf") {
             m.route.set("/show_pdf");
@@ -950,7 +904,7 @@ document.addEventListener("DOMContentLoaded", function () {
         break;
 
       case "2":
-        if (m.route.get().includes("/start")) {
+        if (m.route.get().includes("/start") && files.length > 0) {
           general.fileAction = true;
           helper.bottom_bar(
             "<img src='assets/images/pencil.svg'>",
@@ -972,16 +926,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (evt.key === "EndCall") {
       evt.preventDefault();
-      if (m.route.get().includes("/start")) {
-        window.close();
-      }
     }
 
     if (evt.key === "Backspace") {
       evt.preventDefault();
-      if (m.route.get().includes("/start")) {
-        window.close();
-      }
     }
 
     if (!evt.repeat) {
