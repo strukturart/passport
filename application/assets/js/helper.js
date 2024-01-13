@@ -260,6 +260,41 @@ const helper = (() => {
     }
   };
 
+  let readFile = (filepath, callback) => {
+    let sdcard = "";
+
+    try {
+      sdcard = navigator.getDeviceStorage("sdcard");
+    } catch (e) {}
+
+    if ("b2g" in navigator) {
+      try {
+        sdcard = navigator.b2g.getDeviceStorage("sdcard");
+      } catch (e) {}
+    }
+
+    let request = sdcard.get(filepath);
+    console.log(filepath);
+
+    request.onsuccess = function (e) {
+      const file = e.target.result; // The retrieved file
+      console.log(file);
+
+      const reader = new FileReader();
+
+      reader.addEventListener("load", function (event) {
+        callback(event.target.result);
+        console.log(event.target.result);
+      });
+
+      reader.readAsText(file);
+    };
+    request.onerror = function (e) {
+      // Handle errors
+      console.error("Error reading file:", e);
+    };
+  };
+
   //delete file
   let renameFile = function (filename, new_filename, callback) {
     let sdcard = "";
@@ -450,6 +485,7 @@ const helper = (() => {
     toaster,
     add_script,
     deleteFile,
+    readFile,
     isOnline,
     side_toaster,
     renameFile,

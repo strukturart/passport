@@ -3,8 +3,11 @@
 let debug = false;
 let filter_query;
 let file_content = [];
+let content = "";
 let current_file;
-let files = [];
+let files = JSON.parse(localStorage.getItem("files")) || [];
+console.log("start:", files);
+
 let action = null;
 let action_element = null;
 let selected_image;
@@ -25,6 +28,30 @@ if (debug) {
     );
     return true;
   };
+}
+
+let save_files = () => {
+  localStorage.setItem("files", JSON.stringify(files));
+};
+
+let url_test = (string) => {
+  // Regular expression for a basic URL validation
+  const urlRegex = /^(https?|ftp):\/\/[^\s/$.?#].[^\s]*$/i;
+
+  return urlRegex.test(string);
+};
+
+//https://github.com/ertant/vCard
+
+let vcard_parser = (string) => {
+  console.log(vCardParser.parse(string));
+};
+
+function formatVCardContent(content) {
+  // Replace LF with CRLF and add CRLF at the end if not present
+  return (
+    content.replace(/\r?\n/g, "\r\n") + (content.endsWith("\r\n") ? "" : "\r\n")
+  );
 }
 
 let set_tabindex = () => {
@@ -112,9 +139,10 @@ try {
   });
 } catch (e) {}
 
+let filename_list = [];
 //list files
 let read_files = (callback) => {
-  files = [];
+  //files = [];
   try {
     var d = navigator.getDeviceStorage("sdcard");
 
@@ -122,7 +150,17 @@ let read_files = (callback) => {
 
     cursor.onsuccess = function () {
       if (!this.result) {
+        // Remove  element from files array
+
+        for (let i = 0; i < files.length; i++) {
+          if (filename_list.indexOf(files[i].path) == -1) {
+            files.splice(i, 1);
+          }
+        }
+        save_files();
+
         m.route.set("/start");
+
         callback();
       }
       if (cursor.result.name !== null) {
@@ -136,12 +174,25 @@ let read_files = (callback) => {
           file.name.includes("/passport/") &&
           !file.name.includes("/sdcard/.")
         ) {
-          files.push({
-            "path": file.name,
-            "name": file_name,
-            "file": f,
-            "type": type[type.length - 1],
+          //update files array if exist
+          filename_list.push(file.name);
+          let fileExists = false;
+          files.forEach((e) => {
+            if (e.path == file.name) {
+              fileExists = true;
+              e.file = f;
+            }
           });
+
+          if (!fileExists) {
+            files.push({
+              "path": file.name,
+              "name": file_name,
+              "file": f,
+              "type": type[type.length - 1],
+              "qr": true,
+            });
+          }
         }
         this.continue();
       }
@@ -176,12 +227,23 @@ let read_files = (callback) => {
                 file.value.name.includes("/passport/") &&
                 !file.value.name.includes("/sdcard/.")
               ) {
-                files.push({
-                  path: file.value.name,
-                  file: f,
-                  type: file_name.split(".").pop(),
-                  name: file_name,
+                let fileExists = false;
+                files.forEach((e) => {
+                  if (e.path == file.name) {
+                    fileExists = true;
+                    e.file = f;
+                  }
                 });
+
+                if (!fileExists) {
+                  files.push({
+                    "path": file.name,
+                    "name": file_name,
+                    "file": f,
+                    "type": type[type.length - 1],
+                    "qr": true,
+                  });
+                }
               }
 
               next(_files);
@@ -228,6 +290,14 @@ let load_qrcode_content = (blobUrl) => {
       qrcode_content = "";
       helper.bottom_bar("", "", "");
       document.querySelector(".loading-spinner").style.display = "none";
+
+      files.forEach((e) => {
+        if (e.path == selected_image_url) {
+          e.qr = false;
+        }
+      });
+
+      save_files();
     }
   };
 
@@ -339,7 +409,7 @@ function write_file(data, filename, filetype) {
   var request = sdcard.addNamed(file, filename);
 
   request.onsuccess = function () {
-    files = [];
+    //files = [];
     read_files();
     startup = false;
     m.route.set("/start?focus=" + filename);
@@ -523,12 +593,25 @@ document.addEventListener("DOMContentLoaded", function () {
         m("img", {
           src: selected_image,
           id: "image",
-          oninit: () => {},
+          oninit: () => {
+            console.log(selected_image_url);
+          },
           oncreate: () => {
             qrcode_content = "";
             helper.bottom_bar("", "", "");
             try {
-              load_qrcode_content(selected_image);
+              files.forEach((e) => {
+                if (e.path == selected_image_url) {
+                  if (e.qr) {
+                    load_qrcode_content(selected_image);
+                  } else {
+                    qrcode_content = "";
+                    helper.bottom_bar("", "", "");
+                    document.querySelector(".loading-spinner").style.display =
+                      "none";
+                  }
+                }
+              });
             } catch (e) {
               document.querySelector(".loading-spinner").style.display = "none";
             }
@@ -556,6 +639,28 @@ document.addEventListener("DOMContentLoaded", function () {
     },
   };
 
+  let read_file_callback = (e) => {
+    content = e;
+    document.querySelector("#qr-content").textContent = e;
+  };
+  var show_vcf = {
+    view: function () {
+      return m("div", {}, [
+        m(
+          "div",
+          {
+            id: "qr-content",
+            oninit: () => {
+              helper.bottom_bar("", "", "");
+              helper.readFile(selected_image_url, read_file_callback);
+            },
+          },
+          ""
+        ),
+      ]);
+    },
+  };
+
   var show_qr_content = {
     view: function () {
       return m(
@@ -566,6 +671,24 @@ document.addEventListener("DOMContentLoaded", function () {
             helper.bottom_bar("", "", "");
             if (status == "after_scan") {
               helper.bottom_bar("", "<img src='assets/images/save.svg'>", "");
+            }
+
+            if (url_test(qrcode_content)) {
+              helper.bottom_bar("<img src='assets/images/link.svg'>", "", "");
+            }
+
+            if (qrcode_content.startsWith("BEGIN:VCARD")) {
+              let a = confirm(
+                "Looks like it's a vCard, do you want to save it as a vcard file."
+              );
+              if (a) {
+                let name = new Date() / 1000 + ".vcf";
+                write_file(
+                  formatVCardContent(qrcode_content),
+                  "passport/" + name,
+                  "text/vcard"
+                );
+              }
             }
           },
         },
@@ -601,6 +724,8 @@ document.addEventListener("DOMContentLoaded", function () {
     "/show_qr_content": show_qr_content,
     "/show_image": show_image,
     "/show_pdf": show_pdf,
+    "/show_vcf": show_vcf,
+
     "/start": start,
     "/options": options,
     "/scan": scan,
@@ -632,7 +757,7 @@ document.addEventListener("DOMContentLoaded", function () {
     let cb = () => {
       m.route.set("/start?focus=+/sdcard/passport/" + filename);
     };
-
+    files = [];
     read_files(cb);
   };
 
@@ -641,8 +766,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let cb = () => {
       if (files.length == 0) {
-        console.log("why");
-
         setTimeout(() => {
           m.route.set("/start");
         }, 1000);
@@ -671,6 +794,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     };
+    files = [];
     read_files(cb);
   };
 
@@ -730,6 +854,8 @@ document.addEventListener("DOMContentLoaded", function () {
           m.route.set("/start?focus=" + selected_image_url);
         } else if (m.route.get().includes("/show_pdf")) {
           m.route.set("/start?focus=" + selected_image_url);
+        } else if (m.route.get().includes("/show_vcf")) {
+          m.route.set("/start?focus=" + selected_image_url);
         } else if (m.route.get().includes("/options")) {
           m.route.set("/start");
         } else if (m.route.get().includes("/scan")) {
@@ -757,8 +883,8 @@ document.addEventListener("DOMContentLoaded", function () {
           m.route.set("/start?focus=" + selected_image_url);
         } else if (m.route.get().includes("/show_pdf")) {
           m.route.set("/start?focus=" + selected_image_url);
-
-          break;
+        } else if (m.route.get().includes("/show_vcf")) {
+          m.route.set("/start?focus=" + selected_image_url);
         } else {
           window.close();
         }
@@ -774,6 +900,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (m.route.get().includes("/show_pdf")) {
           zoomIn();
           break;
+        }
+
+        if (m.route.get().includes("/show_qr_content")) {
+          if (url_test(qrcode_content)) window.open(qrcode_content);
         }
 
         if (m.route.get().includes("/start")) {
@@ -858,6 +988,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
           if (document.activeElement.getAttribute("data-type") == "pdf") {
             m.route.set("/show_pdf");
+          } else if (
+            document.activeElement.getAttribute("data-type") == "vcf"
+          ) {
+            m.route.set("/show_vcf");
           } else {
             m.route.set("/show_image");
           }
