@@ -4,21 +4,23 @@ let debug = false;
 let filter_query;
 let file_content = [];
 let content = "";
+let vcard = false;
 let current_file;
 let files = JSON.parse(localStorage.getItem("files")) || [];
-console.log("start:", files);
 
 let action = null;
 let action_element = null;
 let selected_image;
 let selected_image_url;
 let qrcode_content;
-let status;
+
+let vcard_content = { tel: "", email: "" };
 
 let general = {
   fileAction: false,
   importAction: false,
   blocker: false,
+  returned_from_scanning: false,
 };
 
 if (debug) {
@@ -43,16 +45,107 @@ let url_test = (string) => {
 
 //https://github.com/ertant/vCard
 
-let vcard_parser = (string) => {
-  console.log(vCardParser.parse(string));
+let vcard_parser = (vCardData, callback) => {
+  // Default values
+  const defaultValues = {
+    fn: "Unknown",
+    org: "Unknown",
+    tel: "Not available",
+    email: "Not available",
+    adr: "Not available",
+    bday: "Not available",
+    note: "No notes",
+  };
+
+  let vCardComponent;
+
+  try {
+    // Convert vCard data to jCal format (required by ical.js)
+    const jcalData = ICAL.parse(vCardData);
+
+    // Create a component from jCal data
+    vCardComponent = new ICAL.Component(jcalData);
+  } catch (error) {
+    console.error("Error parsing vCard:", error.message);
+    // Handle the error or log it as needed
+    vcard_content = { tel: "", email: "" };
+  }
+
+  // Continue with parsing and accessing properties if vCardComponent is defined
+  if (vCardComponent) {
+    // Access vCard properties
+
+    vcard_content.email = getValue("email", vCardComponent);
+    vcard_content.tel = getValue("tel", vCardComponent);
+
+    callback();
+  }
+
+  function getValue(propertyName, component) {
+    try {
+      const propertyValue = component.getFirstPropertyValue(propertyName);
+      return propertyValue || "";
+    } catch (error) {
+      console.error(`Error accessing ${propertyName}: ${error.message}`);
+      return defaultValues[propertyName] || "Not available";
+    }
+  }
 };
 
 function formatVCardContent(content) {
   // Replace LF with CRLF and add CRLF at the end if not present
-  return (
-    content.replace(/\r?\n/g, "\r\n") + (content.endsWith("\r\n") ? "" : "\r\n")
-  );
+  const formattedContent =
+    content.replace(/\r?\n/g, "\r\n") +
+    (content.endsWith("\r\n") ? "" : "\r\n");
+
+  // Split the content into lines
+  const lines = formattedContent.split(/\r?\n/);
+
+  // Filter out lines that represent empty values
+  const nonEmptyLines = lines.filter((line) => !isEmptyValue(line));
+
+  // Join the non-empty lines back into a formatted vCard content
+  const result = nonEmptyLines.join("\r\n");
+
+  return result;
 }
+
+function isEmptyValue(line) {
+  // Check if a line represents an empty value (e.g., "TEL:")
+  return /^[\w-]+:$/i.test(line.trim());
+}
+
+const create_vcard = (data) => {
+  try {
+    // Create a new vCard component from a string
+    const newVCard = ICAL.Component.fromString(
+      "BEGIN:VCARD\nVERSION:3.0\nEND:VCARD"
+    );
+
+    // Reset blocker flag
+
+    // Add properties based on data
+    if (data.fullName !== "")
+      newVCard.addPropertyWithValue("FN", data.fullName);
+    if (data.tel !== "") newVCard.addPropertyWithValue("TEL", data.tel);
+    if (data.email !== "") newVCard.addPropertyWithValue("EMAIL", data.email);
+
+    // Get the string representation of the new vCard
+    const newVCardString = newVCard.toString();
+
+    // Assign the vCard string to some variable (assuming 'qrcode_content' is a global variable)
+    qrcode_content = newVCardString;
+    general.blocker = false;
+
+    console.log("vCard creation successful");
+  } catch (error) {
+    // Handle errors
+    console.error("Error during vCard creation:", error);
+    // Set blocker flag or perform other error handling if needed
+    side_toaster("Error during vCard creation", 3000);
+    general.blocker = false;
+  }
+};
 
 let set_tabindex = () => {
   document
@@ -142,7 +235,6 @@ try {
 let filename_list = [];
 //list files
 let read_files = (callback) => {
-  //files = [];
   try {
     var d = navigator.getDeviceStorage("sdcard");
 
@@ -152,11 +244,8 @@ let read_files = (callback) => {
       if (!this.result) {
         // Remove  element from files array
 
-        for (let i = 0; i < files.length; i++) {
-          if (filename_list.indexOf(files[i].path) == -1) {
-            files.splice(i, 1);
-          }
-        }
+        files = files.filter((file) => filename_list.includes(file.path));
+
         save_files();
 
         m.route.set("/start");
@@ -177,10 +266,15 @@ let read_files = (callback) => {
           //update files array if exist
           filename_list.push(file.name);
           let fileExists = false;
-          files.forEach((e) => {
+          files.forEach((e, i) => {
             if (e.path == file.name) {
               fileExists = true;
               e.file = f;
+
+              if (file.lastModified != e.modified) {
+                fileExists = false;
+                files.splice(i, 1);
+              }
             }
           });
 
@@ -191,6 +285,7 @@ let read_files = (callback) => {
               "file": f,
               "type": type[type.length - 1],
               "qr": true,
+              "modified": file.lastModified,
             });
           }
         }
@@ -216,8 +311,8 @@ let read_files = (callback) => {
             if (!file.done) {
               let m = file.value.name.split("/");
               let file_name = m[m.length - 1];
-
               let f = "";
+              let type = file_name.split(".");
 
               try {
                 f = URL.createObjectURL(file.value);
@@ -227,28 +322,41 @@ let read_files = (callback) => {
                 file.value.name.includes("/passport/") &&
                 !file.value.name.includes("/sdcard/.")
               ) {
+                filename_list.push(file.value.name);
+
                 let fileExists = false;
-                files.forEach((e) => {
-                  if (e.path == file.name) {
+                files.forEach((e, i) => {
+                  if (e.path == file.value.name) {
                     fileExists = true;
                     e.file = f;
+
+                    if (file.value.lastModified != e.modified) {
+                      fileExists = false;
+                      files.splice(i, 1);
+                    }
                   }
                 });
 
                 if (!fileExists) {
                   files.push({
-                    "path": file.name,
+                    "path": file.value.name,
                     "name": file_name,
                     "file": f,
                     "type": type[type.length - 1],
                     "qr": true,
+                    "modified": file.value.lastModified,
                   });
                 }
               }
 
               next(_files);
             }
-            if (file.done) m.route.set("/start");
+            if (file.done) {
+              files = files.filter((file) => filename_list.includes(file.path));
+
+              save_files();
+              m.route.set("/start");
+            }
           })
           .catch(() => {
             next(_files);
@@ -409,7 +517,6 @@ function write_file(data, filename, filetype) {
   var request = sdcard.addNamed(file, filename);
 
   request.onsuccess = function () {
-    //files = [];
     read_files();
     startup = false;
     m.route.set("/start?focus=" + filename);
@@ -423,7 +530,7 @@ function write_file(data, filename, filetype) {
 }
 
 let generate_qr = (string) => {
-  status = "";
+  general.returned_from_scanning = false;
 
   var qrs = new QRious();
 
@@ -476,7 +583,7 @@ document.addEventListener("DOMContentLoaded", function () {
               } else {
                 document.querySelector("#intro").style.display = "none";
                 t = 0;
-                status = "";
+                general.returned_from_scanning = false;
               }
             },
           },
@@ -486,7 +593,9 @@ document.addEventListener("DOMContentLoaded", function () {
           "ul",
           {
             id: "files-list",
-            oninit: () => {},
+            oninit: () => {
+              vcard_content = {};
+            },
             oncreate: ({ dom }) => {
               setTimeout(() => {
                 if (files.length == 0) {
@@ -569,11 +678,11 @@ document.addEventListener("DOMContentLoaded", function () {
               m.trust(
                 "<em class='item'></em>" +
                   "<kbd class='title'>Passport</kbd><br>" +
-                  "The app is a file viewer for JPG, PNG, and PDF files. It should help you display your QR code tickets more quickly during checks. The files must be stored in the directory /passport so that they can be displayed. <br><br>" +
+                  "The app is a file viewer for JPG, PNG,vCard  and PDF files. It should help you display your QR code tickets more quickly during checks. The files must be stored in the directory /passport so that they can be displayed. <br><br>" +
                   "<em class='item'></em>" +
                   "<em class='item'></em>" +
                   "<kbd>Good to know</kbd><br>With key 2, you can rename or delete files<br><br>" +
-                  "<kbd>Credits</kbd><br>Mithril.js, PDF.js<br><br>" +
+                  "<kbd>Credits</kbd><br>Mithril.js, PDF.js, ical.js<br><br>" +
                   "<em class='item'></em>" +
                   "<kbd>License</kbd><br> MIT<br><br>" +
                   "<em class='item'></em>" +
@@ -639,9 +748,21 @@ document.addEventListener("DOMContentLoaded", function () {
     },
   };
 
-  let read_file_callback = (e) => {
+  let read_vcard_file_callback = (e) => {
     content = e;
     document.querySelector("#qr-content").textContent = e;
+
+    vcard_parser(e, () => {
+      if (vcard_content.tel != "") {
+        helper.bottom_bar(
+          "<img src='assets/images/call.svg'>",
+          "",
+          "<img src='assets/images/pencil.svg'>"
+        );
+      } else {
+        helper.bottom_bar("", "", "");
+      }
+    });
   };
   var show_vcf = {
     view: function () {
@@ -652,7 +773,8 @@ document.addEventListener("DOMContentLoaded", function () {
             id: "qr-content",
             oninit: () => {
               helper.bottom_bar("", "", "");
-              helper.readFile(selected_image_url, read_file_callback);
+
+              helper.readFile(selected_image_url, read_vcard_file_callback);
             },
           },
           ""
@@ -667,28 +789,41 @@ document.addEventListener("DOMContentLoaded", function () {
         "div",
         {
           id: "qr-content",
+          onclose: () => {
+            general.returned_from_scanning = false;
+          },
           oninit: () => {
             helper.bottom_bar("", "", "");
-            if (status == "after_scan") {
+            if (general.returned_from_scanning) {
               helper.bottom_bar("", "<img src='assets/images/save.svg'>", "");
-            }
 
-            if (url_test(qrcode_content)) {
-              helper.bottom_bar("<img src='assets/images/link.svg'>", "", "");
-            }
-
-            if (qrcode_content.startsWith("BEGIN:VCARD")) {
-              let a = confirm(
-                "Looks like it's a vCard, do you want to save it as a vcard file."
-              );
-              if (a) {
-                let name = new Date() / 1000 + ".vcf";
-                write_file(
-                  formatVCardContent(qrcode_content),
-                  "passport/" + name,
-                  "text/vcard"
+              if (url_test(qrcode_content)) {
+                helper.bottom_bar(
+                  "<img src='assets/images/link.svg'>",
+                  "<img src='assets/images/save.svg'>",
+                  ""
                 );
               }
+
+              if (url_test(qrcode_content)) {
+                helper.bottom_bar(
+                  "<img src='assets/images/link.svg'>",
+                  "<img src='assets/images/save.svg'>",
+                  ""
+                );
+              }
+
+              if (qrcode_content.startsWith("BEGIN:VCARD")) {
+                vcard = true;
+                vcard_parser(qrcode_content);
+              }
+            }
+
+            if (
+              url_test(qrcode_content) &&
+              general.returned_from_scanning == false
+            ) {
+              helper.bottom_bar("<img src='assets/images/link.svg'>", "", "");
             }
           },
         },
@@ -699,7 +834,7 @@ document.addEventListener("DOMContentLoaded", function () {
   let scan_callback = (e) => {
     qrcode_content = e;
     m.route.set("/show_qr_content");
-    status = "after_scan";
+    general.returned_from_scanning = true;
   };
 
   var scan = {
@@ -720,11 +855,28 @@ document.addEventListener("DOMContentLoaded", function () {
     },
   };
 
+  //todo add textnote
+  var add_note = {
+    view: function () {
+      return m("div", [
+        m("video", {
+          id: "add_note",
+          oncreate: () => {
+            helper.bottom_bar("", "", "");
+          },
+        }),
+        m("input", { type: "text", id: "input-name" }),
+        m("input", { type: "text", id: "input-text" }),
+      ]);
+    },
+  };
+
   m.route(root, "/start", {
     "/show_qr_content": show_qr_content,
     "/show_image": show_image,
     "/show_pdf": show_pdf,
     "/show_vcf": show_vcf,
+    "/add_note": add_note,
 
     "/start": start,
     "/options": options,
@@ -752,17 +904,20 @@ document.addEventListener("DOMContentLoaded", function () {
     }
   };
 
-  let renameFile_callback = (filename) => {
+  let renameFile_callback = (filename, oldfile) => {
     general.blocker = false;
+    files = files.filter((file) => !file.path.includes(oldfile));
+
     let cb = () => {
       m.route.set("/start?focus=+/sdcard/passport/" + filename);
     };
-    files = [];
+    //files = [];
     read_files(cb);
   };
 
   let deleteFile_callback = (filename) => {
     general.blocker = false;
+    files = files.filter((file) => !file.path.includes(filename));
 
     let cb = () => {
       if (files.length == 0) {
@@ -794,7 +949,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     };
-    files = [];
+    //files = [];
     read_files(cb);
   };
 
@@ -828,7 +983,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function longpress_action(param) {
     switch (param.key) {
-      case "*":
+      case "Backspace":
+        window.close();
         break;
     }
   }
@@ -860,13 +1016,8 @@ document.addEventListener("DOMContentLoaded", function () {
           m.route.set("/start");
         } else if (m.route.get().includes("/scan")) {
           m.route.set("/start");
-        } else if (
-          m.route.get().includes("/start") &&
-          general.importAction == false
-        ) {
-          // window.close();
         } else if (m.route.get().includes("/show_qr_content")) {
-          if (status == "after_scan") {
+          if (general.returned_from_scanning) {
             m.route.set("/start");
           } else {
             m.route.set("/show_image");
@@ -894,19 +1045,13 @@ document.addEventListener("DOMContentLoaded", function () {
       case "Control":
         if (m.route.get().includes("/show_image")) {
           m.route.set("/show_qr_content");
-          break;
-        }
-
-        if (m.route.get().includes("/show_pdf")) {
+        } else if (m.route.get().includes("/show_pdf")) {
           zoomIn();
-          break;
-        }
-
-        if (m.route.get().includes("/show_qr_content")) {
+        } else if (m.route.get().includes("/show_qr_content")) {
           if (url_test(qrcode_content)) window.open(qrcode_content);
-        }
-
-        if (m.route.get().includes("/start")) {
+        } else if (m.route.get().includes("/show_vcf")) {
+          if (vcard_content.tel != "") mozactivity.dial(vcard_content.tel);
+        } else if (m.route.get().includes("/start")) {
           if (general.fileAction) {
             general.blocker = true;
             let name = String(window.prompt("Enter name", ""));
@@ -924,13 +1069,42 @@ document.addEventListener("DOMContentLoaded", function () {
                 general.blocker = false;
               }, 2000);
             }
-          } else {
-            general.importAction = true;
+          }
+          if (general.importAction == false && general.blocker == false) {
             helper.bottom_bar(
-              "",
+              "<img src='assets/images/person.svg'>",
               "<img src='assets/images/qr.svg'>",
               "<img src='assets/images/image.svg'>"
             );
+
+            setTimeout(() => {
+              general.importAction = true;
+            }, 600);
+          }
+
+          if (general.importAction == true) {
+            try {
+              let h = (e) => {
+                general.blocker = false;
+
+                const b = {
+                  fullName: (e.name && e.name[0]) || "",
+                  tel: (e.tel && e.tel[0] && e.tel[0].value) || "",
+                  email: (e.email && e.email[0] && e.email[0].value) || "",
+                };
+
+                create_vcard(b);
+                let name = b.fullName.replace(/\s+/g, "-");
+                write_file(
+                  formatVCardContent(qrcode_content),
+                  "passport/" + name + ".vcf",
+                  "text/vcard"
+                );
+              };
+              mozactivity.pickContact(h);
+            } catch (e) {
+              console.log(e);
+            }
           }
 
           break;
@@ -941,9 +1115,9 @@ document.addEventListener("DOMContentLoaded", function () {
       case "Alt":
         if (m.route.get().includes("/show_pdf")) {
           zoomOut();
-        }
-
-        if (m.route.get().includes("/start")) {
+        } else if (m.route.get().includes("/show_vcf")) {
+          if (vcard_content.tel != "") mozactivity.sms(vcard_content.tel);
+        } else if (m.route.get().includes("/start")) {
           if (general.fileAction) {
             let filePath = document.activeElement.getAttribute("data-path");
             helper.deleteFile(filePath, deleteFile_callback);
@@ -968,8 +1142,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
       case "Enter":
         if (m.route.get().includes("/show_qr_content")) {
-          if (status != "") {
+          if (general.returned_from_scanning == true) {
             generate_qr(qrcode_content);
+          }
+          if (vcard) {
+            let name = new Date() / 1000 + ".vcf";
+            write_file(
+              formatVCardContent(qrcode_content),
+              "passport/" + name,
+              "text/vcard"
+            );
           }
         }
 
@@ -1035,6 +1217,10 @@ document.addEventListener("DOMContentLoaded", function () {
         ) {
           nav(+1);
         }
+        break;
+
+      case "3":
+        //m.route.set("/add_note");
         break;
 
       case "2":

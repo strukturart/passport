@@ -1,7 +1,7 @@
 {
-  "version": "1.2.12",
+  "version": "1.2.20",
   "name": "passport",
-  "description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder  passport  are listed.",
+  "description": "At times it is practically fast to access digital train  airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All All images,PDF's and vcards in the folder  passport  are listed.",
   "launch_path": "/index.html",
   "fullscreen": "true",
   "lang": "en-US",
@@ -23,7 +23,7 @@
     "en-US": {
       "name": "Passport",
       "subtitle": "Ticket please",
-      "description": "At times it is practically fast to access digital train airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images in the folder passport  are listed."
+      "description": "At times it is practically fast to access digital train airplane qrcode tickets to showcase at a check-in. I wrote an app for that. All images,PDF's and vcards in the folder passport  are listed."
     }
   },
   
@@ -41,6 +41,7 @@
     },
     "mobiledata": {},
     "wifidata": {},
-    "calllog": {}
+    "calllog": {},
+    "contacts":{}
   }
 }

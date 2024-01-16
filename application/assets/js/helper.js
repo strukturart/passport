@@ -274,7 +274,6 @@ const helper = (() => {
     }
 
     let request = sdcard.get(filepath);
-    console.log(filepath);
 
     request.onsuccess = function (e) {
       const file = e.target.result; // The retrieved file
@@ -284,7 +283,6 @@ const helper = (() => {
 
       reader.addEventListener("load", function (event) {
         callback(event.target.result);
-        console.log(event.target.result);
       });
 
       reader.readAsText(file);
@@ -330,7 +328,7 @@ const helper = (() => {
           // success copy and delete
           let a = new_filename + "." + file_extension;
 
-          callback(a);
+          callback(a, filename);
 
           helper.side_toaster("successfully renamed", 3000);
         };
